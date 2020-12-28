@@ -34,7 +34,7 @@ class Authenticate:
 
         return token_credential
 
-    def generate_credential(self, authentication_method, **kwargs):
+    def generate_credential(self, params):
         """
         Will generate credential based on authentication_method selected
         
@@ -45,9 +45,9 @@ class Authenticate:
         """
         if authentication_method == "client_secret":
 
-            tenant_id = kwargs["tenant_id"]
-            storage_account_id = kwargs["storage_account_id"]
-            storage_account_key = kwargs["storage_account_key"]
+            tenant_id = params["tenant_id"]
+            storage_account_id = params["storage_account_id"]
+            storage_account_key = params["storage_account_key"]
 
             token_credential  = self.__generate_client_secret_credential(tenant_id, storage_account_id, storage_account_key)
             
@@ -55,8 +55,8 @@ class Authenticate:
         
         elif authentication_method == "User":
 
-            client_id = kwargs["client_id"]
-            username = kwargs["username"]
-            password = kwargs["password"]
+            client_id = params["client_id"]
+            username = params["username"]
+            password = params["password"]
 
             token_credential = self.__generate_user_credential(client_id, username, password)
