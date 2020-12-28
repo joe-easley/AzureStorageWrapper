@@ -80,27 +80,26 @@ class Blob:
 
         return blob_service_client
 
-    def _create_container_client(self, container_name):
+    def _create_container_client(self, container_name, storage_account_name):
         """
         Generates a container client using blob service client
 
         param container name: str
         return container_client: ContainerClientObj
         """
-        storage_account_name = self.params["storage_account_name"]
 
         blob_service_client = self._create_blob_service_client(storage_account_name)
         container_client = blob_service_client.get_container_client(container_name)
 
         return container_client
 
-    def list_blobs(self, container_name):
+    def list_blobs(self, container_name, storage_account_name):
         
         """
         generates list of blobs
         """
 
-        container_client = self._create_container_client(container_name)
+        container_client = self._create_container_client(container_name, storage_account_name)
         blobs_in_container = container_client.list_blobs()
 
         blobs_list = []
@@ -117,13 +116,13 @@ class Blob:
         param container_name: str
         param blob_name: str
 
-        return True if successful
+        return status from delete_blob()
         """
 
         container_client = self._create_container_client(container_name)
-        container_client.delete_blob(blob_name, delete_snapshots=None)
+        status = container_client.delete_blob(blob_name, delete_snapshots=None)
 
-        return True
+        return status
 
     def upload_blob(self, blob_name, data, container_name, blob_type):
         """
@@ -133,10 +132,10 @@ class Blob:
         param container_name: str
         param blob_type: str
 
-        return True if successful
+        return status from upload_blob()
         """
 
         blob_client = self._create_blob_client_from_url(blob_name, storage_account_name, container_name)
-        blob_client.upload_blob(data, blob_type=blob_type)
+        status = blob_client.upload_blob(data, blob_type=blob_type)
 
-        return True
+        return status

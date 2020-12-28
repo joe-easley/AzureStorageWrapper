@@ -1,1 +1,2 @@
-from blob import Blob
+from .blob import Blob
+from .fileshare import FileShare
