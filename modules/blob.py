@@ -1,8 +1,8 @@
 from azure.storage.blob import BlobServiceClient, generate_container_sas, ContainerSasPermissions, BlobClient
-from authenticate import Authenticate
-from datetime import datetime
+from authenticate import AuthenticateFunctions
+from datetime import datetime, timedelta
 
-class Blob:
+class BlobFunctions:
     """
     Contains wrapper functions to authenticate and interact with blob storage
 
@@ -38,7 +38,7 @@ class Blob:
         csp = ContainerSasPermissions(read=True, write=True, delete=True, list=True)
 
         sas_token = generate_container_sas(
-            account_name=storage_account_name
+            account_name=storage_account_name,
             container_name=container_name,
             user_delegation_key=udk,
             permission=csp,
@@ -72,7 +72,7 @@ class Blob:
         """
         """
 
-        token = Authenticate.generate_credential(self.params)
+        token = AuthenticateFunctions.generate_credential(self.params)
 
         url = f"https://{storage_account_name}.blob.core.windows.net/"
 
@@ -124,7 +124,7 @@ class Blob:
 
         return status
 
-    def upload_blob(self, blob_name, data, container_name, blob_type):
+    def upload_blob(self, blob_name, data, container_name, storage_account_name, blob_type):
         """
         Uploads a blob to specified container
         param blob_name: str

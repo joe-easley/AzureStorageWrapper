@@ -1,6 +1,6 @@
 from azure.identity import ClientSecretCredential, UsernamePasswordCredential
 
-class Authenticate:
+class AuthenticateFunctions:
     """
     Sets up authentication for azure storage operations
     """
@@ -14,9 +14,15 @@ class Authenticate:
 
         return client_secret: ClientSecretObj
         """
+        
+        try:
+            
+            token_credential = ClientSecretCredential(tenant_id, storage_account_id, storage_account_key)
 
-        token_credential = ClientSecretCredential(tenant_id, storage_account_id, storage_account_key)
-
+        except Exception as e:
+            
+            raise Exception(e)
+        
         return token_credential
 
     def __generate_user_credential(self, client_id, username, password):
@@ -30,7 +36,13 @@ class Authenticate:
         return token_credential: UsernamePasswordCredential obj
         """
 
-        token_credential = UsernamePasswordCredential(client_id=client_id, username=username, password=password)
+        try:
+
+            token_credential = UsernamePasswordCredential(client_id=client_id, username=username, password=password)
+
+        except Exception as e:
+            
+            raise Exception(e)
 
         return token_credential
 
@@ -43,6 +55,9 @@ class Authenticate:
 
         return token_crential: Azure credential obj
         """
+        
+        authentication_method = params["authentication_method"]
+
         if authentication_method == "client_secret":
 
             tenant_id = params["tenant_id"]
@@ -60,3 +75,5 @@ class Authenticate:
             password = params["password"]
 
             token_credential = self.__generate_user_credential(client_id, username, password)
+            
+            return token_credential

@@ -1,10 +1,10 @@
-from authenticate import Authenticate
+from authenticate import AuthenticateFunctions
 from azure.keyvault.secrets import SecretClient
 from azure.storage.file import FileService
 from azure.storage.fileshare import generate_account_sas, ResourceTypes, AccountSasPermissions
-from datetime import datetime
+from datetime import datetime, timedelta
 
-class FileShare:
+class FileShareFunctions:
 
     def __init__(self, params):
         self.params = params
@@ -21,8 +21,8 @@ class FileShare:
         fs_sas_token = generate_account_sas(
             account_name=storage_account_name,
             account_key=secret,
-            ResourceTypes=(service=True, container=True, object=True)
-            permissions=AccountSasPermissions(read=True, write=True),
+            resource_types=ResourceTypes(service=True, container=True, object=True),
+            permission=AccountSasPermissions(read=True, write=True),
             expiry=datetime.utcnow() + timedelta(hours=sas_duration)
         )
 
@@ -50,7 +50,7 @@ class FileShare:
         """
         vault_url = self.params["vault_url"]
         secret_name = self.params["secret_name"]
-        credential = Authenticate.generate_credential(self.params)
+        credential = AuthenticateFunctions.generate_credential(self.params)
 
         secret_client = SecretClient(vault_url=vault_url, credential=credential)
         secret = secret_client.get_secret(secret_name)
@@ -66,6 +66,6 @@ class FileShare:
         param storage_account_name: str
         """
         file_service = self._create_file_service(storage_account_name)
-        status = file_service.create_directory(share_name=file_share_name, directory_name=dir_path)
+        status = file_service.create_directory(share_name=file_share_name, directory_name=directory_path)
 
         return status
