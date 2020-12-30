@@ -49,7 +49,7 @@ Therefore to retrieve this secret the FileShareFunctions class must be initiated
 Example:
 
     fileshare_params = {"vault_url": "vault.url.com",
-                        "secret_name": "account_key"}
+                        "secret_name": "sshh top secret"}
 
     FileShareFunctions(token, fileshare_params)   
 
