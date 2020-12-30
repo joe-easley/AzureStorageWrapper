@@ -9,8 +9,9 @@ class BlobFunctions:
     param params: dict
     """
 
-    def __init__(self, params):
-        self.params = params
+    def __init__(self, token=None, sas_duration=None):
+        self.token = token
+        self.sas_duration = sas_duration
 
     def _create_blob_sas_token(self, storage_account_name, container_name):
         """
@@ -31,7 +32,7 @@ class BlobFunctions:
 
     def _create_sas_key(self, blob_service_client, storage_account_name, container_name):
         
-        sas_duration = self.params["sas_duration"]
+        sas_duration = self.sas_duration
 
         udk = blob_service_client.get_user_delegation_key(key_start_time=datetime.utcnow(), key_expiry_time=datetime.utcnow() + timedelta(hours=sas_duration))
 
@@ -72,11 +73,9 @@ class BlobFunctions:
         """
         """
 
-        token = AuthenticateFunctions.generate_credential(self.params)
-
         url = f"https://{storage_account_name}.blob.core.windows.net/"
 
-        blob_service_client = BlobServiceClient(account_url=url, credential=token)
+        blob_service_client = BlobServiceClient(account_url=url, credential=self.token)
 
         return blob_service_client
 
@@ -110,7 +109,7 @@ class BlobFunctions:
         
         return blobs_list
 
-    def delete_blob(self, container_name, blob_name):
+    def delete_blob(self, storage_account_name, container_name, blob_name):
         """
         deletes a specified blob
         param container_name: str
@@ -119,7 +118,7 @@ class BlobFunctions:
         return status from delete_blob()
         """
 
-        container_client = self._create_container_client(container_name)
+        container_client = self._create_container_client(container_name, storage_account_name)
         status = container_client.delete_blob(blob_name, delete_snapshots=None)
 
         return status
