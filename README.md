@@ -53,6 +53,15 @@ Example:
 
     FileShareFunctions(token, fileshare_params)   
 
+If there are functions that are not currently supported by this library then it is possible to generate a container level sas using the AuthenticateFunctions class. This is not default behaviour but can be accessed by passing storage_type, storage_account_name and container_name as arguments when initialising the class
+
+    AuthenticateFunctions(params, storage_type="Blob", storage_account_name="acct_name", container_name="container_name")
+
+
+The SAS token can then be accessed in a similar way to the token
+
+    sas_token = AuthenticateFunctions.sas_token
+
 # Supported storage functions
 
 ## Blob

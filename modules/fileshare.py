@@ -6,7 +6,8 @@ from datetime import datetime, timedelta
 
 class FileShareFunctions:
 
-    def __init__(self, params):
+    def __init__(self, token, params):
+        self.token = token
         self.params = params
 
     def _create_sas_for_fileshare(self, storage_account_name):
@@ -50,14 +51,13 @@ class FileShareFunctions:
         """
         vault_url = self.params["vault_url"]
         secret_name = self.params["secret_name"]
-        credential = AuthenticateFunctions.generate_credential(self.params)
 
-        secret_client = SecretClient(vault_url=vault_url, credential=credential)
+        secret_client = SecretClient(vault_url=vault_url, credential=self.token)
         secret = secret_client.get_secret(secret_name)
 
         return secret.value
 
-    def create_fileshare_directory(self, file_share_name, directory_path, storage_account_name):
+    def create_fileshare_directory(self, storage_account_name, file_share_name, directory_path):
         """
         Creates a directory in a preexisting file share
 

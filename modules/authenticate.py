@@ -1,13 +1,17 @@
 from azure.identity import ClientSecretCredential, UsernamePasswordCredential
+from azure.storage.blob import BlobServiceClient, ContainerSasPermissions, generate_container_sas
+from datetime import datetime, timedelta
 
 class AuthenticateFunctions:
     """
     Sets up authentication for azure storage operations
     """
 
-    def __init__(self, params):
+    def __init__(self, params, storage_type=None, storage_account_name=None, container_name=None,):
         self.params = params
+        self.storage_account_name = storage_account_name
         self.token = self.generate_credential()
+        self.sas_token = self._generate_sas_token
 
     def __generate_client_secret_credential(self, tenant_id, storage_account_id, storage_account_key):
         """
@@ -49,6 +53,39 @@ class AuthenticateFunctions:
             raise Exception(e)
 
         return token_credential
+
+    def _generate_sas_token(self, storage_type=None):
+        if storage_type == None:
+            return None
+        
+        elif storage_type == "Blob":
+
+            blob_sas_token = self.__generate_blob_sas()
+            
+            return blob_sas_token
+            
+
+    def __generate_blob_sas(self):
+        
+        sas_duration = self.sas_duration
+        
+        url = f"https://{self.storage_account_name}.blob.core.windows.net/"
+
+        blob_service_client = BlobServiceClient(account_url=url, credential=self.token)
+
+        udk = blob_service_client.get_user_delegation_key(key_start_time=datetime.utcnow(), key_expiry_time=datetime.utcnow() + timedelta(hours=sas_duration))
+
+        csp = ContainerSasPermissions(read=True, write=True, delete=True, list=True)
+
+        sas_token = generate_container_sas(
+            account_name=self.storage_account_name,
+            container_name=container_name,
+            user_delegation_key=udk,
+            permission=csp,
+            expiry=datetime.utcnow() + timedelta(hours=sas_duration)
+        )
+
+        return sas_token
 
     def generate_credential(self):
         """
