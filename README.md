@@ -58,7 +58,7 @@ If there are functions that are not currently supported by this library then it 
     AuthenticateFunctions(params, storage_type="Blob", storage_account_name="acct_name", container_name="container_name")
 
 
-The SAS token can then be accessed in a similar way to the token
+The SAS token can then be accessed in a similar way to the token. Note that this token is limited by storage_type, so when this feature is rolled out to storage types other than blob then different instances will be required if you wish to access multiple sas tokens.
 
     sas_token = AuthenticateFunctions.sas_token
 
