@@ -6,9 +6,10 @@ from datetime import datetime, timedelta
 
 class FileShareFunctions:
 
-    def __init__(self, token, params):
+    def __init__(self, token, vault_url=None, secret_name=None):
         self.token = token
-        self.params = params
+        self.vault_url = vault_url
+        self.secret_name = secret_name
 
     def _create_sas_for_fileshare(self, storage_account_name):
         """
@@ -34,7 +35,7 @@ class FileShareFunctions:
         creates file service object
         """
 
-        fs_sas_token = self._create_file_service(storage_account_name)
+        fs_sas_token = self._create_sas_for_fileshare(storage_account_name)
 
         file_service = FileService(account_name=storage_account_name, sas_token=fs_sas_token)
 
@@ -49,8 +50,8 @@ class FileShareFunctions:
 
         return secret
         """
-        vault_url = self.params["vault_url"]
-        secret_name = self.params["secret_name"]
+        vault_url = self.vault_url
+        secret_name = self.secret_name
 
         secret_client = SecretClient(vault_url=vault_url, credential=self.token)
         secret = secret_client.get_secret(secret_name)
