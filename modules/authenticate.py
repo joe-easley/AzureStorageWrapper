@@ -1,6 +1,4 @@
 from azure.identity import ClientSecretCredential, UsernamePasswordCredential
-from azure.storage.blob import BlobServiceClient, ContainerSasPermissions, generate_container_sas
-from datetime import datetime, timedelta
 
 class AuthenticateFunctions:
     """

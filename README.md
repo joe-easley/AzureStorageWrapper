@@ -13,9 +13,9 @@ Example:
               "password": "Wouldn'tYouLikeToKnow,
               "sas_duration": "5"}
 
-This can be accessed using something like:
+This can be used using something like:
 
-    authentication = AuthenticationFunctions(params).token
+    authentication_token = AuthenticationFunctions(params).token
 
 The dictionary must include;
 - authentication_method (e.g "client_secret" or "user"). See Authentication sections for more information
