@@ -3,11 +3,12 @@ from datetime import datetime, timedelta
 
 class QueueFunctions:
 
-    def __init__(self, token, sas_duration, sas_permissions=None, vault_url=None, secret_name=None):
+    def __init__(self, token, storage_account, queue_name, sas_duration, sas_permissions=None, vault_url=None, secret_name=None):
         self.token = token
         self.sas_permissions = sas_permissions
         self.vault_url = vault_url
         self.secret_name = secret_name
+        self.queue_client = self._gen_queue_client(storage_account, queue_name)
 
     def _create_sas_key(self, storage_account_name, queue_name):
         
@@ -26,7 +27,7 @@ class QueueFunctions:
             )
 
         return sas_key
-        
+
     def __get_secret(self):
         """
         Retrieves storage acct access key from key vault
@@ -81,3 +82,89 @@ class QueueFunctions:
 
         else:
             raise ValueError(f"{string} not appropriate sas permission value. Must be True or False.")
+
+    def _gen_queue_client(self, storage_account, queue_name):
+
+        url = f"https://{storage_account}.queue.core.windows.net/{queue_name}"
+
+        queue_client = QueueClient().from_queue_url(queue_url=url, credential=self.token)
+
+        return queue_client
+
+    def clear_messages(self, timeout=10):
+        """
+        Deletes all messages from a queue. Timeout value auto-set to 10seconds.
+
+        param timeout: int
+        """
+
+        self.queue_client.clear_messages(timeout=timeout)
+
+    def create_queue(self, metadata, timeout=10):
+        """
+        Creates a new queue in storage acct. Timeout value auto-set to 10seconds.
+
+        param metadata: dict
+        param timeout: int
+        """
+
+        self.queue_client.create_queue(metadata=metadata, timeout=timeout)
+
+    def receive_message(self, timeout=10, visibility_timeout=300):
+        """
+        Removes a message from the front of the queue. 
+        Returns QueueMessage Class.
+        Server timeout defaults to 10 seconds
+        Visibility timeout defaults to 300 seconds
+
+        param timeout: int
+        param visibility_timeout: int
+
+        return message: QueueMessage class
+        """
+
+        message = self.queue_client.receive_message(visibility_timeout=visibility_timeout, timeout=timeout)
+
+        return message
+
+    def delete_message(self, message, pop_receipt, timeout=10):
+        """
+        Deletes a message from the queue.
+        Timeout defaults to 10 seconds
+        Message can either be a message object or id as a str
+
+        param message: str or QueueMessage
+        param pop_receipt: str
+        param timeout: int
+        """
+
+        self.queue_client.delete_message(message=message, pop_receipt=pop_receipt, timeout=timeout)
+
+    def send_message(self, content, visibility_timeout=604800, time_to_live=604800, timeout=10):
+        """
+        Sends a message to queue.
+        Default time to live is 7 days, however this can be specified in seconds. Set to infinity with -1.
+        visibility timeout specifies the time that the message will be invisible. After the timeout expires, the message will become visible. Defaults to 7 days
+
+        param content: str
+        param visibility_timeout: int
+
+        return sent_message: QueueMessage object
+        """
+
+        sent_message = self.queue_client.send_message(content=content, visibility_timeout=visibility_timeout, time_to_live=time_to_live, timeout=timeout)
+
+        return sent_message
+
+    def update_message(self, message, pop_receipt, content, visibility_timeout=604800, timeout=10):
+        """
+        Updates the visibility timeout of a message, or updates the content of a message
+        Server timeout defaults to 10 seconds
+
+        param message: str or QueueMessage
+        param pop_receipt: str
+        param content: str
+        param visibility_timeout: int
+        param timeout: int
+        """
+        updated_message = self.queue_client.update_message(message, pop_receipt=pop_receipt, content=content)
