@@ -6,11 +6,12 @@ from datetime import datetime, timedelta
 
 class FileShareFunctions:
 
-    def __init__(self, token, vault_url=None, secret_name=None):
+    def __init__(self, token, storage_account_name, vault_url=None, secret_name=None, file_service_client=None):
         self.token = token
         self.vault_url = vault_url
         self.secret_name = secret_name
-
+        self.file_service = self._create_file_service(storage_account_name)
+        
     def _create_sas_for_fileshare(self, storage_account_name):
         """
         Generates sas key for fileshare, requires key to account being stored in key vault
@@ -58,15 +59,20 @@ class FileShareFunctions:
 
         return secret.value
 
-    def create_fileshare_directory(self, storage_account_name, file_share_name, directory_path):
+    def create_fileshare_directory(self, file_share_name, directory_path):
         """
         Creates a directory in a preexisting file share
 
         param file_share_name: str
         param directory_path: str
-        param storage_account_name: str
         """
-        file_service = self._create_file_service(storage_account_name)
-        status = file_service.create_directory(share_name=file_share_name, directory_name=directory_path)
+
+        status = self.file_service.create_directory(share_name=file_share_name, directory_name=directory_path)
 
         return status
+
+    def copy_file(self, dest_share, directory_name, file_name, copy_source, metadata=None, timeout=None):
+
+        copy_status = self.file_service.copy_file(share_name=dest_share, directory_name=directory_name, file_name=file_name, copy_source=copy_source, metadata=metadata, timeout=timeout)
+
+        return copy_status

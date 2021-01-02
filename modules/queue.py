@@ -30,11 +30,11 @@ class QueueFunctions:
         self.token = token
         self.queue_service_client = self._generate_queue_service_client(storage_account_name=storage_account)
         
-        if queue_client is None and storage_account is not None:
-            self.queue_client = self._gen_queue_client(storage_account, queue_name)
+        if queue_client is None and storage_account_name is not None:
+            self.queue_client = self._gen_queue_client(storage_account_name, queue_name)
         elif queue_client is not None:
             self.queue_client = queue_client
-        elif queue_client, storage_account, queue_name is None:
+        elif queue_client and storage_account_name and queue_name is None:
             self.queue_client = None
         else:
             raise Exception("Error in establishing queue client, check arguments in class initialisation")
