@@ -89,7 +89,6 @@ class AuthenticateFunctions:
 
         return token_crential: Azure credential obj
         """
-        print("Generate credential token func running")
         authentication_method = self.params["authentication_method"]
 
         if authentication_method == "client_secret":

@@ -4,17 +4,29 @@ from datetime import datetime, timedelta
 
 class BlobFunctions:
     """
-    Contains wrapper functions to authenticate and interact with blob storage
+    A wrapper on blob storage functions
 
-    param params: dict
+    Args:
+        token(TokenCredentialsClass obj): A token from the authentication module
+        storage_account_name(str): Name of the storage account
+        container_name(str, Optional): Name of container, required for operations within a container eg blob deletion, blob list etc. Defaults to None.
+        sas_duration(int, Optional): Controls how long a container sas is valid for. Defaults to 1 hour
+        sas_permissions(dict, Optional): Controls what permissions a SAS has. Defaults to read, write, list and delete permissions.
+
+    Attributes:
+        token(TokenCredentialsClass obj): A token from the authentication module
+        blob_service_client(BlobServiceClient obj): A blob service client that could be used for operations unsupported by this library
+        container_client(ContainerClient obj): A container client that could be used for operations unsupported by this library
+
     """
 
-    def __init__(self, token, storage_account_name, container_name, sas_duration=1, sas_permissions=None):
+    def __init__(self, token, storage_account_name, container_name=None, sas_duration=1, sas_permissions=None):
         self.token = token
         self.storage_account_name = storage_account_name
         self.container_name = container_name
         self.sas_duration = sas_duration
         self.sas_permissions = sas_permissions
+        self.blob_service_client = self._create_blob_service_client()
         self.container_client = self._create_container_client()
 
     def _create_blob_sas_token(self):
@@ -28,16 +40,15 @@ class BlobFunctions:
         return sas_key: str
         """
 
-        blob_service_client = self._create_blob_service_client()
-        sas_key = self._create_sas_key(blob_service_client)
+        sas_key = self._create_sas_key()
 
         return sas_key
 
-    def _create_sas_key(self, blob_service_client):
+    def _create_sas_key(self):
 
         sas_duration = self.sas_duration
 
-        udk = blob_service_client.get_user_delegation_key(key_start_time=datetime.utcnow(), key_expiry_time=datetime.utcnow() + timedelta(hours=sas_duration))
+        udk = self.blob_service_client.get_user_delegation_key(key_start_time=datetime.utcnow(), key_expiry_time=datetime.utcnow() + timedelta(hours=sas_duration))
 
         csp = self.__define_sas_permissions()
 
@@ -107,10 +118,14 @@ class BlobFunctions:
         return container_client: ContainerClientObj
         """
 
-        blob_service_client = self._create_blob_service_client()
-        container_client = blob_service_client.get_container_client(self.container_name)
+        if self.container_name is not None:
 
-        return container_client
+            container_client = self.blob_service_client.get_container_client(self.container_name)
+
+            return container_client
+
+        else:
+            return None
 
     def list_blobs(self, name_starts_with="", timeout=10):
         """Returns a generator to list the blobs under the specified container
@@ -164,12 +179,18 @@ class BlobFunctions:
 
         return blob_client
 
-    def delete_container(self, container_name):
+    def delete_container(self, container_name, lease=None, if_modified_since=None, if_unmodified_since=None, etag=None, match_condition=None, timeout=20):
         """Deletes a specified container
 
         Args:
             container_name (str): Name of container
-     
+            lease (optional): only deletes if container has active lease and matches this ID
+            if_modified_since (datetime, optional): A datetime value. Azure expects this to be utc
+            if_unmodified_since (datetime, optional): A datetime value. Azure expects this to be utc
+            etag (str, optional): An ETag value, or the wildcard character (*)
+            match_condition (MatchConditions obj, optional): The match condition to use upon the etag.
+            timeout (int, optional): Expressed in seconds. Defaults to 20
+
         Returns:
             None if deletion is successful
 
@@ -204,3 +225,24 @@ class BlobFunctions:
 
         else:
             raise Exception("Container specified for creation does not match that instantiated in BlobFunctions class call")
+
+    def list_containers(self, **kwargs):
+        """
+        Returns a generator to list the containers under the specified account.
+
+        The generator will lazily follow the continuation tokens returned by the service and stop when all containers have been returned.
+
+        Args:
+            name_starts_with (str, optional): Filters the results to return only containers whose names begin with the specified prefix. Defaults to None.
+            include_metadata (bool, optional): Specifies that container metadata to be returned in the response. Defaults to False.
+            include_deleted (bool, optional): Specifies that deleted containers to be returned in the response. Defaults to False.
+            results_per_page (int, optional): The maximum number of container names to retrieve per API call. Defaults to 5000.
+            timeout (int, optional): expressed in seconds. Defaults to 10.
+
+        Returns:
+            ListGenerator: a generator to list containers under specified account
+        """
+
+        retrieved_containers = self.blob_service_client.list_containers(kwargs)
+
+        return retrieved_containers

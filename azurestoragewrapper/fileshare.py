@@ -11,9 +11,10 @@ class FileShareFunctions:
         self.vault_url = vault_url
         self.secret_name = secret_name
         self.sas_duration = sas_duration
-        self.file_service = self._create_file_service(storage_account_name)
+        self.storage_account_name = storage_account_name
+        self.file_service = self._create_file_service(self.storage_account_name)
 
-    def _create_sas_for_fileshare(self, storage_account_name):
+    def _create_sas_for_fileshare(self):
         """
         Generates sas key for fileshare
         Requires key to account being stored in key vault
@@ -22,7 +23,7 @@ class FileShareFunctions:
         secret = self.__get_secret()
 
         fs_sas_token = generate_account_sas(
-            account_name=storage_account_name,
+            account_name=self.storage_account_name,
             account_key=secret,
             resource_types=ResourceTypes(service=True, container=True, object=True),
             permission=AccountSasPermissions(read=True, write=True),
@@ -31,14 +32,14 @@ class FileShareFunctions:
 
         return fs_sas_token
 
-    def _create_file_service(self, storage_account_name):
+    def _create_file_service(self):
         """
         creates file service object
         """
 
-        fs_sas_token = self._create_sas_for_fileshare(storage_account_name)
+        fs_sas_token = self._create_sas_for_fileshare()
 
-        file_service = FileService(account_name=storage_account_name, sas_token=fs_sas_token)
+        file_service = FileService(account_name=self.storage_account_name, sas_token=fs_sas_token)
 
         return file_service
 
@@ -112,7 +113,7 @@ class FileShareFunctions:
             file_name (str): Name of file to create or update.
             file (str): Content of file as an array of bytes.
             index (int, optional): Start index in the array of bytes. Defaults to 0.
-            count (int, optional): Number of bytes to upload. Set to None or negative value to upload all bytes starting from index.. Defaults to None.
+            count (int, optional): Number of bytes to upload. Set to None or negative value to upload all bytes starting from index. Defaults to None.
             content_settings (ContentSettings obj, optional): ContentSettings object used to set file properties. Defaults to None.
             metadata (dict, optional): Name-value pairs associated with the file as metadata. Defaults to None.
             validate_content (bool, optional): If true, calculates an MD5 hash for each range of the file. Defaults to False.
@@ -177,14 +178,14 @@ class FileShareFunctions:
         self.file_service.delete_file(share_name, directory_name, file_name, timeout)
 
     def delete_share(self, share_name, fail_not_exist=False, timeout=10, snapshot=None, delete_snapshots=None):
-        """[summary]
+        """Marks the specified share for deletion. If the share does not exist, the operation fails on the service
 
         Args:
             share_name (str): [description]
             fail_not_exist (bool, optional): [description]. Defaults to False.
             timeout (int, optional): expressed in seconds. Defaults to 10.
-            snapshot (str, optional): A string that represents the snapshot version, if applicable. Specify this argument to delete a specific snapshot only. delete_snapshots must be None if this is specified.. Defaults to None.
-            delete_snapshots (DeleteSnapshot, optional): To delete a share that has snapshots, this must be specified as DeleteSnapshot.Include.. Defaults to None.
+            snapshot (str, optional): A string that represents the snapshot version, if applicable. Specify this argument to delete a specific snapshot only. delete_snapshots must be None if this is specified. Defaults to None.
+            delete_snapshots (DeleteSnapshot, optional): To delete a share that has snapshots, this must be specified as DeleteSnapshot.Include. Defaults to None.
 
         Returns:
             bool: True if share is deleted, False share doesn't exist.
@@ -214,5 +215,49 @@ class FileShareFunctions:
 
         return exists
 
-    def list_directories_and_files(self, share_name, directory_name=None, num_results=1000, marker=None, timeout=10, prefix=None, snapshot=None):
-        pass
+    def list_directories_and_files(self, share_name, directory_name=None, num_results=5000,
+                                   marker=None, timeout=10, prefix=None, snapshot=None):
+        """Returns a generator to list the directories and files under the specified share.
+        The generator will lazily follow the continuation tokens returned by the service and stop when all directories
+        and files have been returned or num_results is reached.
+
+        If num_results is specified and the share has more than that number of files and directories,
+        the generator will have a populated next_marker field once it finishes.
+        This marker can be used to create a new generator if more results are desired.
+
+        Args:
+            share_name (str): Name of existing share.
+            directory_name (str, optional): The path to the directory. Defaults to None.
+            num_results (int, optional): Specifies the maximum number of files to return, including all directory elements. Defaults to 5000.
+            marker (str, optional): An opaque continuation token. This value can be retrieved from the next_marker field of a previous generator objec. Defaults to None.
+            timeout (int, optional): expressed in seconds. Defaults to 10.
+            prefix (str, optional): list only the files and/or directories with the given prefix. Defaults to None.
+            snapshot (str, optional): A string that represents the snapshot version, if applicable. Defaults to None.
+
+        Returns:
+            Generator
+        """
+
+        list_of_directories_and_files = self.file_service.list_directories_and_files(share_name, directory_name, num_results, marker, timeout, prefix, snapshot)
+
+        return list_of_directories_and_files
+
+    def list_shares(self, prefix=None, marker=None, num_results=None, include_metadata=False, timeout=20, include_snapshots=False):
+        """Returns a generator to list the shares under the specified account. The generator will lazily follow the continuation tokens returned by the service
+        and stop when all shares have been returned or num_results is reached.
+
+        Args:
+            prefix (str, optional): Filters the results to return only shares whose names begin with the specified prefix. Defaults to None.
+            marker (str, optional): An opaque continuation token. This value can be retrieved from the next_marker field of a previous generator object. Defaults to None.
+            num_results (int, optional): Specifies the maximum number of shares to return. Defaults to None.
+            include_metadata (bool, optional): Specifies that share metadata be returned in the response. Defaults to False.
+            timeout (int, optional): expressed in seconds. Defaults to 20.
+            include_snapshots (bool, optional): Specifies that share snapshots be returned in the response. Defaults to False.
+
+        Returns:
+            [type]: [description]
+        """
+
+        share_list = self.file_service.list_shares(prefix, marker, num_results, include_metadata, timeout, include_snapshots)
+
+        return share_list
