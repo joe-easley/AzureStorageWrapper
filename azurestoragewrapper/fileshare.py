@@ -12,7 +12,7 @@ class FileShareFunctions:
         self.secret_name = secret_name
         self.sas_duration = sas_duration
         self.storage_account_name = storage_account_name
-        self.file_service = self._create_file_service(self.storage_account_name)
+        self.file_service = self._create_file_service()
 
     def _create_sas_for_fileshare(self):
         """
