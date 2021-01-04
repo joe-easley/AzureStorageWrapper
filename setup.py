@@ -4,11 +4,11 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="azure-storage-wrapper", # Replace with your own username
+    name="azure-storage-wrapper",
     version="0.0.1",
     author="Joe Easley",
     author_email="joeeasley@outlook.com",
-    description="A wrapper on azure tools",
+    description="A wrapper on azure storage tools",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/joe-easley/AzureStorageWrapper",
