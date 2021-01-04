@@ -1,0 +1,218 @@
+from azure.keyvault.secrets import SecretClient
+from azure.storage.file import FileService
+from azure.storage.fileshare import generate_account_sas, ResourceTypes, AccountSasPermissions
+from datetime import datetime, timedelta
+
+
+class FileShareFunctions:
+
+    def __init__(self, token, storage_account_name, sas_duration=1, vault_url=None, secret_name=None, file_service_client=None):
+        self.token = token
+        self.vault_url = vault_url
+        self.secret_name = secret_name
+        self.sas_duration = sas_duration
+        self.file_service = self._create_file_service(storage_account_name)
+
+    def _create_sas_for_fileshare(self, storage_account_name):
+        """
+        Generates sas key for fileshare
+        Requires key to account being stored in key vault
+        param
+        """
+        secret = self.__get_secret()
+
+        fs_sas_token = generate_account_sas(
+            account_name=storage_account_name,
+            account_key=secret,
+            resource_types=ResourceTypes(service=True, container=True, object=True),
+            permission=AccountSasPermissions(read=True, write=True),
+            expiry=datetime.utcnow() + timedelta(hours=self.sas_duration)
+        )
+
+        return fs_sas_token
+
+    def _create_file_service(self, storage_account_name):
+        """
+        creates file service object
+        """
+
+        fs_sas_token = self._create_sas_for_fileshare(storage_account_name)
+
+        file_service = FileService(account_name=storage_account_name, sas_token=fs_sas_token)
+
+        return file_service
+
+    def __get_secret(self):
+        """
+        Retrieves storage acct access key from key vault
+
+        param vault_url: str
+        param secret_name: str
+
+        return secret
+        """
+        vault_url = self.vault_url
+        secret_name = self.secret_name
+
+        secret_client = SecretClient(vault_url=vault_url, credential=self.token)
+        secret = secret_client.get_secret(secret_name)
+
+        return secret.value
+
+    def create_fileshare_directory(self, file_share_name, directory_path, metadata=None, fail_on_exist=False,
+                                   file_permission=None, smb_properties=None, timeout=20):
+        """Creates a directory in a specified share. If creating low level dir high level must exist.
+
+        Args:
+            file_share_name (str): Name of existing share.
+            directory_path (str): Name of directory to create, including the path to the parent directory
+            metadata (dict(str, str), optional): A dict with name_value pairs to associate with the share as metadata. Defaults to None.
+            fail_on_exist (bool, optional): specify whether to throw an exception when the directory exists. False by default. Defaults to False.
+            file_permission (str): File permission, a portable SDDL. Defaults to None
+            smb_properties (SMBProperties Class, optional): Sets the SMB related file properties. Defaults to None.
+            timeout (int, optional): The timeout parameter is expressed in seconds.. Defaults to 20.
+
+        Returns:
+            True if directory is created, False if directory already exists
+        """
+
+        status = self.file_service.create_directory(share_name=file_share_name, directory_name=directory_path)
+
+        return status
+
+    def copy_file(self, dest_share, directory_name, file_name, copy_source, metadata=None, timeout=20):
+        """
+
+        Args:
+            dest_share (str): share must exist
+            directory_name (str): directory must exis
+            file_name (str): If the destination file exists, it will be overwritten. Otherwise, it will be created
+            copy_source (str): A URL of up to 2 KB in length that specifies an Azure file or blob
+            metadata (dict, optional): Name-value pairs associated with the file as metadata
+            timeout (int, optional): expressed in seconds. Defaults to 20.
+
+        Returns:
+            CopyProperties: Copy operation properties such as status, source, and ID
+        """
+
+        copy_properties = self.file_service.copy_file(share_name=dest_share, directory_name=directory_name,
+                                                      file_name=file_name, copy_source=copy_source, metadata=metadata, timeout=timeout)
+
+        return copy_properties
+
+    def create_file_from_bytes(self, share_name, directory_name, file_name, file,
+                               index=0, count=None, content_settings=None, metadata=None,
+                               validate_content=False, progress_callback=None, max_connections=2,
+                               file_permission=None, smb_properties=None, timeout=30):
+        """Creates a new file from an array of bytes, or updates the content of an existing file, with automatic chunking and progress notifications.
+
+        Args:
+            share_name (str): Name of existing share
+            directory_name (str): The path to the directory.
+            file_name (str): Name of file to create or update.
+            file (str): Content of file as an array of bytes.
+            index (int, optional): Start index in the array of bytes. Defaults to 0.
+            count (int, optional): Number of bytes to upload. Set to None or negative value to upload all bytes starting from index.. Defaults to None.
+            content_settings (ContentSettings obj, optional): ContentSettings object used to set file properties. Defaults to None.
+            metadata (dict, optional): Name-value pairs associated with the file as metadata. Defaults to None.
+            validate_content (bool, optional): If true, calculates an MD5 hash for each range of the file. Defaults to False.
+            progress_callback ([type], optional): Callback for progress with signature function(current, total). Defaults to None.
+            max_connections (int, optional): Maximum number of parallel connections to use. Defaults to 2.
+            file_permission (str, optional): File permission, a portable SDDL. Defaults to None.
+            smb_properties (SMbProperties obj, optional): Sets the SMB related file properties. Defaults to None.
+            timeout (int, optional):  expressed in seconds. Defaults to 30.
+        """
+
+        self.file_service.create_file_from_bytes(share_name, directory_name, file_name, file,
+                                                 index, count, content_settings, metadata, validate_content, progress_callback,
+                                                 max_connections, file_permission, smb_properties, timeout)
+
+    def create_share(self, share_name, metadata=None, quota=None, fail_on_exist=False, timeout=None):
+        """Creates a new share in storage_account. If the share with the same name already exists,
+        the operation fails on the service. By default, the exception is swallowed by the client unless exposed with fail_on_exist
+
+        Args:
+            share_name (str): Name of share to create
+            metadata (dict, optional): A dict with name_value pairs to associate with the share as metadata. Defaults to None.
+            quota (int, optional): Specifies the maximum size of the share, in gigabytes. Must be greater than 0, and less than or equal to 5TB (5120). Defaults to None.
+            fail_on_exist (bool, optional): Specify whether to throw an exception when the share exists. Defaults to False.
+            timeout (int, optional): expressed in seconds. Defaults to None.
+
+        Returns:
+            True if share is created, False if already exists
+        """
+
+        status = self.file_service.create_share(share_name, metadata, quota, fail_on_exist, timeout)
+
+        return status
+
+    def delete_directory(self, share_name, directory_name, fail_not_exist=False, timeout=20):
+        """Deletes the specified empty directory. Note that the directory must be empty before it can be deleted.
+        Attempting to delete directories that are not empty will fail.
+
+        Args:
+            share_name (str): Name of existing share.
+            directory_name ([str): Name of directory to delete, including the path to the parent directory.
+            fail_not_exist (bool, optional): Specify whether to throw an exception when the directory doesn't exist. Defaults to False.
+            timeout (int, optional): expressed in seconds. Defaults to 20.
+
+        Returns:
+            bool: True if directory is deleted, False otherwise
+        """
+
+        status = self.file_service.delete_directory(share_name, directory_name, fail_not_exist, timeout)
+
+        return status
+
+    def delete_file(self, share_name, directory_name, file_name, timeout=20):
+        """Marks the specified file for deletion. The file is later deleted during garbage collection.
+
+        Args:
+            share_name (str): Name of existing share
+            directory_name (str): The path to the directory.
+            file_name (str): Name of existing file.
+            timeout (int, optional): expressed in seconds. Defaults to 20.
+        """
+
+        self.file_service.delete_file(share_name, directory_name, file_name, timeout)
+
+    def delete_share(self, share_name, fail_not_exist=False, timeout=10, snapshot=None, delete_snapshots=None):
+        """[summary]
+
+        Args:
+            share_name (str): [description]
+            fail_not_exist (bool, optional): [description]. Defaults to False.
+            timeout (int, optional): expressed in seconds. Defaults to 10.
+            snapshot (str, optional): A string that represents the snapshot version, if applicable. Specify this argument to delete a specific snapshot only. delete_snapshots must be None if this is specified.. Defaults to None.
+            delete_snapshots (DeleteSnapshot, optional): To delete a share that has snapshots, this must be specified as DeleteSnapshot.Include.. Defaults to None.
+
+        Returns:
+            bool: True if share is deleted, False share doesn't exist.
+        """
+
+        status = self.file_service.delete_share(share_name, fail_not_exist, timeout, snapshot, delete_snapshots)
+
+        return status
+
+    def exists(self, share_name, directory_name=None, file_name=None, timeout=20, snapshot=None):
+        """Returns a boolean indicating whether the share exists if only share name is given
+        If directory_name is specificed a boolean will be returned indicating if the directory exists.
+        If file_name is specified as well, a boolean will be returned indicating if the file exists.
+
+        Args:
+            share_name (str): Name of a share.
+            directory_name (str, optional): The path to a directory. Defaults to None.
+            file_name (str, optional): Name of a file. Defaults to None.
+            timeout (str, optional): Expressed in seconds. Defaults to None.
+            snapshot (str, optional): A string that represents the snapshot version, if applicable. Defaults to None.
+
+        Returns:
+            bool: A boolean indicating whether the resource exists
+        """
+
+        exists = self.file_service.exists(share_name, directory_name, file_name, timeout, snapshot)
+
+        return exists
+
+    def list_directories_and_files(self, share_name, directory_name=None, num_results=1000, marker=None, timeout=10, prefix=None, snapshot=None):
+        pass

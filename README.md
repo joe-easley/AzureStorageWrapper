@@ -86,6 +86,16 @@ The FileShareFunctions class must be initiated as above (see authentication sect
 
 Creates a directory in chosen file share. Returns status
 
+- copy_file(dest_share, directory_name, file_name, copy_source)
+
+Copies a file from blob or other file share to a specified share machine. On completion returns a CopyProperties object
+
+- create_file_from_byters(share_name, directory_name, file_name, file)
+
+Creates a new file from an array of bytes, or updates the content of an existing file, with automatic chunking and progress notifications.
+
+
+
 ## Queue
 
 Queue operations use the QueueFunctions class. This can be instantiated by at a minimum passing an authentication token and storage account name. 

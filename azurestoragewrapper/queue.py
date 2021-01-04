@@ -1,6 +1,7 @@
 from azure.storage.queue import generate_queue_sas, QueueClient, QueueServiceClient, AccountSasPermissions, ResourceTypes, generate_account_sas, QueueSasPermissions
 from datetime import datetime, timedelta
 
+
 class QueueFunctions:
     """
     Using a token generated in AuthenticateFunctions gives access to the following queue functions.
@@ -28,13 +29,17 @@ class QueueFunctions:
 
     def __init__(self, token, storage_account_name, queue_name=None, queue_client=None):
         self.token = token
-        self.queue_service_client = self._generate_queue_service_client(storage_account_name=storage_account)
-        
-        if queue_client is None and storage_account_name is not None:
-            self.queue_client = self._gen_queue_client(storage_account_name, queue_name)
-        elif queue_client is not None:
-            self.queue_client = queue_client
-        elif queue_client and storage_account_name and queue_name is None:
+        self.queue_service_client = self._generate_queue_service_client(storage_account_name=storage_account_name)
+        self.queue_client = queue_client
+        self.storage_account_name = storage_account_name
+        self.queue_name = queue_name
+
+    def __establish_if_queue_client_required(self):
+        if self.queue_client is None and self.queue_name is not None:
+            self.queue_client = self._gen_queue_client(self.storage_account_name, self.queue_name)
+        elif self.queue_client is not None:
+            self.queue_client = self.queue_client
+        elif self.queue_client is None and self.queue_name is None:
             self.queue_client = None
         else:
             raise Exception("Error in establishing queue client, check arguments in class initialisation")
@@ -42,7 +47,7 @@ class QueueFunctions:
     def _generate_queue_service_client(self, storage_account_name):
         """
         Creates a queue service client using a token created by authentication module
-        
+
         param storage_account_name: str
         param token: Authentication obj
 
@@ -63,7 +68,7 @@ class QueueFunctions:
 
         return QueueClient obj
         """
-
+        self.__establish_if_queue_client_required()
         queue_client = self.queue_service_client.get_queue_client(queue_name)
 
         return queue_client
@@ -74,7 +79,7 @@ class QueueFunctions:
 
         param timeout: int
         """
-
+        self.__establish_if_queue_client_required()
         self.queue_client.clear_messages(timeout=timeout)
 
     def receive_message(self, timeout=10, visibility_timeout=300):
@@ -89,7 +94,7 @@ class QueueFunctions:
 
         return message: QueueMessage class
         """
-
+        self.__establish_if_queue_client_required()
         message = self.queue_client.receive_message(visibility_timeout=visibility_timeout, timeout=timeout)
 
         return message
@@ -106,7 +111,7 @@ class QueueFunctions:
 
         return None
         """
-
+        self.__establish_if_queue_client_required()
         self.queue_client.delete_message(message=message, pop_receipt=pop_receipt, timeout=timeout)
 
         return None
@@ -122,7 +127,7 @@ class QueueFunctions:
 
         return sent_message: QueueMessage object
         """
-
+        self.__establish_if_queue_client_required()
         sent_message = self.queue_client.send_message(content=content, visibility_timeout=visibility_timeout, time_to_live=time_to_live, timeout=timeout)
 
         return sent_message
@@ -140,7 +145,7 @@ class QueueFunctions:
 
         return updated_message: QueueMessage object
         """
-        
+        self.__establish_if_queue_client_required()
         updated_message = self.queue_client.update_message(message, pop_receipt=pop_receipt, content=content)
 
         return updated_message
@@ -157,7 +162,7 @@ class QueueFunctions:
         return QueueClient obj
 
         """
-
+        self.__establish_if_queue_client_required()
         queue_client = self.queue_service_client.create_queue(name=name, metadata=metadata, timeout=timeout)
 
         return queue_client
