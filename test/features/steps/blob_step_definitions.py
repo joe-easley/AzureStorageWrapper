@@ -1,4 +1,4 @@
-from azurestoragewrapper import BlobFunctions
+from azurestoragewrapper import AuthenticateFunctions, BlobFunctions
 from behave import given, when, then
 
 
@@ -15,8 +15,8 @@ def set_up_params(context):
                       "storage_account_app_id": context.storage_account_app_id,
                       "storage_account_app_key": context.storage_account_app_key,
                       }
-    context.BlobFunctions = azurestoragewrapper.BlobFunctions()
-    context.AuthenticateFunctions = azurestoragewrapper.AuthenticateFunctions()
+    context.BlobFunctions = BlobFunctions()
+    context.AuthenticateFunctions = AuthenticateFunctions()
 
 
 @given("credential is given")
