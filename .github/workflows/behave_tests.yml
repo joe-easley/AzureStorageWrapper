@@ -23,15 +23,17 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install behave
+        pip install wheel
         pip install flake8 pytest
     - name: Lint with flake8
       run: |
         flake8 --ignore=E501
-    - name: Run behave tests
+    - name: Install azurestoragewrapper and requirements
       run: |
         echo $PWD
         cd "/home/runner/work/AzureStorageWrapper/AzureStorageWrapper/main"
         echo $PWD
         ls -d */
+        pip install azurestoragewrapper
         pip install -r requirements.txt
         behave --tags @storage_wrapper_functions
