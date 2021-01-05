@@ -1,7 +1,5 @@
-from azurestoragewrapper import AuthenticateFunctions, BlobFunctions
+import azurestoragewrapper
 from behave import given, when, then
-import os
-
 
 
 @given("parameters are set up")
@@ -17,11 +15,13 @@ def set_up_params(context):
                       "storage_account_app_id": context.storage_account_app_id,
                       "storage_account_app_key": context.storage_account_app_key,
                       }
+    context.BlobFunctions = azurestoragewrapper.BlobFunctions()
+    context.AuthenticateFunctions = azurestoragewrapper.AuthenticateFunctions()
 
 
 @given("credential is given")
 def generate_credential(context):
-    context.token = AuthenticateFunctions(context.params).token
+    context.token = context.AuthenticateFunctions(context.params).token
 
 
 @given("a token has been created")
@@ -31,8 +31,8 @@ def assert_credential_exists(context):
 
 @given("BlobFunctions has been instantiated with all permissions")
 def instantiate_blob_functions(context):
-    context.blob_functions = BlobFunctions(BlobFunctions(token=context.token, storage_account_name=context.storage_account_name,
-                                                         container_name=context.container_name)
+    context.blob_functions = context.BlobFunctions(token=context.token, storage_account_name=context.storage_account_name,
+                                                   container_name=context.container_name)
 
 
 @when("list blobs function is used")
@@ -50,7 +50,4 @@ def upload_file_to_blob(context):
     file_location = r"test\data\blob.txt"
     with open(file_location, "rb") as f:
         blob_to_upload = f.read()
-    context.blob_functions.(blob_name=context.blob_name, data=blob_to_upload)
-
-
-@when("a delete blob function is called")
+    context.blob_functions(blob_name=context.blob_name, data=blob_to_upload)
