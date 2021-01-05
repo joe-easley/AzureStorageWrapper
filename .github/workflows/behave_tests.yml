@@ -29,5 +29,6 @@ jobs:
         flake8 --ignore=E501
     - name: Run behave tests
       run: |
+        $ echo $PWD
         pip install requirements.txt
         behave --tags @storage_wrapper_functions
