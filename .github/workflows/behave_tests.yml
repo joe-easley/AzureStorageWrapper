@@ -29,7 +29,9 @@ jobs:
         flake8 --ignore=E501
     - name: Run behave tests
       run: |
-        echo $PWD
+        current_dir = $PWD
+        current_dir = "$(current_dir)"/main
         ls -d */
+        cd current_dir
         pip install requirements.txt
         behave --tags @storage_wrapper_functions
