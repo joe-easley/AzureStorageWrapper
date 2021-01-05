@@ -11,4 +11,3 @@ Feature: Blob storage functionality
     Scenario: BlobFunctions are used
         Given a token has been created
         And BlobFunctions has been instantiated with all permissions
-
