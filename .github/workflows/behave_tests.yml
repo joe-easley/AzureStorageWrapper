@@ -24,7 +24,7 @@ jobs:
         pip install flake8 pytest
     - name: Lint with flake8
       run: |
-        flake8 --ignore=E501
+        flake8 --ignore=E501,F401
     - name: Install azurestoragewrapper and requirements
       run: |
         echo $PWD
