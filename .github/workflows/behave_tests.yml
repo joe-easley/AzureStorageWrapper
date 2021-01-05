@@ -36,4 +36,8 @@ jobs:
         ls -d */
         pip install .
         pip install -r requirements.txt
+
+    - name: Run behave tests
+        cd "/home/runner/work/AzureStorageWrapper/AzureStorageWrapper/test"
+        echo $PWD
         behave --tags @storage_wrapper_functions
