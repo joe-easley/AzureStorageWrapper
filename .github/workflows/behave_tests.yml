@@ -30,5 +30,6 @@ jobs:
     - name: Run behave tests
       run: |
         echo $PWD
+        cd $(PWD)/main
         pip install requirements.txt
         behave --tags @storage_wrapper_functions
