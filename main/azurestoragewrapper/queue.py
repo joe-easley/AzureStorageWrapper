@@ -1,5 +1,4 @@
-from azure.storage.queue import generate_queue_sas, QueueClient, QueueServiceClient, AccountSasPermissions, ResourceTypes, generate_account_sas, QueueSasPermissions
-from datetime import datetime, timedelta
+from azure.storage.queue import QueueServiceClient
 
 
 class QueueFunctions:
@@ -17,7 +16,7 @@ class QueueFunctions:
     Required params:
 
     param token: Authentication.token
-    
+
     Optional params:
 
     param storage_account: str
@@ -84,7 +83,7 @@ class QueueFunctions:
 
     def receive_message(self, timeout=10, visibility_timeout=300):
         """
-        Removes a message from the front of the queue. 
+        Removes a message from the front of the queue.
         Returns QueueMessage Class.
         Server timeout defaults to 10 seconds
         Visibility timeout defaults to 300 seconds
@@ -189,19 +188,19 @@ class QueueFunctions:
         All params are optional, default behaviour is to list all queues in specified account.
 
         param name_starts_with: str
-        param include_metadata: bool default=True, 
+        param include_metadata: bool default=True,
         results_per_page: int
         param timeout: int
 
         return iterable (auto-paging) of QueueProperties
-        
+
         """
 
         list_queues = self.queue_service_client.list_queues(
-            name_starts_with=name_starts_with, 
-            include_metadata=include_metadata, 
-            results_per_page=results_per_page, 
+            name_starts_with=name_starts_with,
+            include_metadata=include_metadata,
+            results_per_page=results_per_page,
             timeout=timeout
-            )
+        )
 
         return list_queues

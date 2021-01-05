@@ -20,15 +20,15 @@ class AuthenticateFunctions:
 
         return client_secret: ClientSecretObj
         """
-        
+
         try:
-            
+
             token_credential = ClientSecretCredential(tenant_id, storage_account_id, storage_account_key)
 
         except Exception as e:
-            
+
             raise Exception(e)
-        
+
         return token_credential
 
     def __generate_user_credential(self, client_id, username, password):
@@ -47,7 +47,7 @@ class AuthenticateFunctions:
             token_credential = UsernamePasswordCredential(client_id=client_id, username=username, password=password)
 
         except Exception as e:
-            
+
             raise Exception(e)
 
         return token_credential
@@ -100,7 +100,7 @@ class AuthenticateFunctions:
             token_credential = self.__generate_client_secret_credential(tenant_id, storage_account_app_id, storage_account_app_key)
 
             return token_credential
-        
+
         elif authentication_method == "User":
 
             client_id = self.params["client_id"]
@@ -108,5 +108,5 @@ class AuthenticateFunctions:
             password = self.params["password"]
 
             token_credential = self.__generate_user_credential(client_id, username, password)
-            
+
             return token_credential

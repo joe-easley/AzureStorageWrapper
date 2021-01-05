@@ -1,4 +1,4 @@
-from azure.storage.blob import BlobServiceClient, generate_container_sas, ContainerSasPermissions, BlobClient, BlobType
+from azure.storage.blob import BlobServiceClient, generate_container_sas, ContainerSasPermissions, BlobClient
 from datetime import datetime, timedelta
 
 
