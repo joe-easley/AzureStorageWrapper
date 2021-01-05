@@ -30,4 +30,4 @@ jobs:
         flake8 --ignore=E501
     - name: Run behave tests
       run: |
-        behave 
+        behave --tags=@storage_wrapper_functions
