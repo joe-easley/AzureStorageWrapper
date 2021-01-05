@@ -72,8 +72,8 @@ class AuthenticateFunctions:
 
         else:
             try:
-                storage_account_app_id = self.params["storage_account_id"]
-                storage_account_app_key = self.params["storage_account_key"]
+                storage_account_app_id = self.params["storage_account_app_id"]
+                storage_account_app_key = self.params["storage_account_app_key"]
 
                 return storage_account_app_key, storage_account_app_id
 
