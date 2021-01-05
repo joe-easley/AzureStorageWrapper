@@ -1,3 +1,3 @@
 from .blob import BlobFunctions
-from .authenticate import AuthenticateFuntions
+from .authenticate import AuthenticateFunctions
 from .fileshare import FileshareFunctions
