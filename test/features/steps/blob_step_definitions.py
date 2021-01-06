@@ -1,4 +1,4 @@
-import azurestoragewrapper
+from azurestoragewrapper.blob import BlobFunctions
 from behave import given, when, then
 
 
@@ -15,7 +15,7 @@ def set_up_params(context):
                       "storage_account_app_id": context.storage_account_app_id,
                       "storage_account_app_key": context.storage_account_app_key,
                       }
-    context.BlobFunctions = azurestoragewrapper.BlobFunctions()
+    context.BlobFunctions = BlobFunctions()
     context.AuthenticateFunctions = azurestoragewrapper.AuthenticateFunctions()
 
 
