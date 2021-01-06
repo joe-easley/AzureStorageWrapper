@@ -1,8 +1,6 @@
-import storagewrapper
 from storagewrapper.blob import BlobFunctions
 from storagewrapper.authenticate import AuthenticateFunctions
 from behave import given, when, then
-import sys
 
 
 @given("parameters are set up")
