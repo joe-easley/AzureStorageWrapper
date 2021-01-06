@@ -1,5 +1,4 @@
-from azurestoragewrapper.blob import BlobFunctions
-from azurestoragewrapper.authenticate import AuthenticateFunctions
+from storagewrapper import AuthenticateFunctions, BlobFunctions
 from behave import given, when, then
 import sys
 print(sys.modules)
