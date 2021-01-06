@@ -1,7 +1,8 @@
-from storagewrapper import AuthenticateFunctions, BlobFunctions
+import storagewrapper
+from storagewrapper.blob import BlobFunctions
+from storagewrapper.authenticate import AuthenticateFunctions
 from behave import given, when, then
 import sys
-print(sys.modules)
 
 
 @given("parameters are set up")
@@ -17,13 +18,11 @@ def set_up_params(context):
                       "storage_account_app_id": context.storage_account_app_id,
                       "storage_account_app_key": context.storage_account_app_key,
                       }
-    context.BlobFunctions = BlobFunctions()
-    context.AuthenticateFunctions = AuthenticateFunctions()
 
 
 @given("credential is given")
 def generate_credential(context):
-    context.token = context.AuthenticateFunctions(context.params).token
+    context.token = AuthenticateFunctions(context.params).token
 
 
 @given("a token has been created")
@@ -33,8 +32,8 @@ def assert_credential_exists(context):
 
 @given("BlobFunctions has been instantiated with all permissions")
 def instantiate_blob_functions(context):
-    context.blob_functions = context.BlobFunctions(token=context.token, storage_account_name=context.storage_account_name,
-                                                   container_name=context.container_name)
+    context.blob_functions = BlobFunctions(token=context.token, storage_account_name=context.storage_account_name,
+                                           container_name=context.container_name)
 
 
 @when("list blobs function is used")

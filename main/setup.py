@@ -18,4 +18,5 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.6')
+    python_requires='>=3.6',
+    py_modules=['storagewrapper.authenticate', 'storagewrapper.blob', 'storagewrapper.fileshare', 'storagewrapper.queue'])
