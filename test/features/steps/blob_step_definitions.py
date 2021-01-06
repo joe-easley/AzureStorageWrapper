@@ -1,4 +1,4 @@
-from azurestoragewrapper import AuthenticateFunctions, BlobFunctions
+import azurestoragewrapper
 from behave import given, when, then
 
 
