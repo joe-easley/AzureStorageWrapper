@@ -1,3 +1,5 @@
+![Behave Tests](https://github.com/joe-easley/AzureStorageWrapper/workflows/Behave%20Tests/badge.svg?branch=main)
+
 # AzureStorageWrapper
 A wrapper for azure storage tools
 
