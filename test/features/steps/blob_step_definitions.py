@@ -15,8 +15,8 @@ def set_up_params(context):
                       "storage_account_app_id": context.storage_account_app_id,
                       "storage_account_app_key": context.storage_account_app_key,
                       }
-    context.BlobFunctions = BlobFunctions()
-    context.AuthenticateFunctions = AuthenticateFunctions()
+    context.BlobFunctions = azurestoragewrapper.BlobFunctions()
+    context.AuthenticateFunctions = azurestoragewrapper.AuthenticateFunctions()
 
 
 @given("credential is given")
