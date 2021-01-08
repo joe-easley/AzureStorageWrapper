@@ -220,7 +220,8 @@ class BlobFunctions:
         """
         if container_name == self.container_name:
 
-            self.container_client.create_container(container_name, metadata, public_access, kwargs)
+            self.container_client.create_container(container_name, metadata)
+
             return True
 
         else:

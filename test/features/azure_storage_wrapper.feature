@@ -11,5 +11,5 @@ Feature: Blob storage functionality
         | client_secret         |
 
     Scenario: BlobFunctions are used
-        Given a token has been created
+        # Given a token has been created
         And BlobFunctions has been instantiated with all permissions

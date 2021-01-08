@@ -25,9 +25,9 @@ def generate_credential(context, authentication_method):
     context.token = AuthenticateFunctions(context.params).token
 
 
-@given("a token has been created")
-def assert_credential_exists(context):
-    assert context.token is not None
+# @given("a token has been created")
+# def assert_credential_exists(context):
+#     assert context.token is not None
 
 
 @given("BlobFunctions has been instantiated with all permissions")
