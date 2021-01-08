@@ -13,7 +13,7 @@ def set_up_params(context):
     context.storage_account_app_key = context.config.userdata.get("storage_account_app_key")
     context.storage_account_name = context.storage_account_app_id = context.config.userdata.get("storage_account_name")
     context.container_name = context.config.userdata.get("container_name")
-    context.blob_name = "sampleblob.txt"
+    context.blob_name = "blob.txt"
     context.params = {"tenant_id": context.tenant_id,
                       "storage_account_app_id": context.storage_account_app_id,
                       "storage_account_app_key": context.storage_account_app_key,
@@ -52,4 +52,7 @@ def upload_file_to_blob(context):
     path_to_file = f"{os.getcwd()}/data/blob.txt"
     with open(path_to_file, "rb") as f:
         blob_to_upload = f.read()
+    
+    context.blob_functions = BlobFunctions(token=context.token, storage_account_name=context.storage_account_name,
+                                           container_name=context.container_name)
     context.blob_functions(blob_name=context.blob_name, data=blob_to_upload)
