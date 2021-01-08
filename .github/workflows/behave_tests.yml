@@ -36,9 +36,7 @@ jobs:
 
     - name: Run behave tests
       run: |
-        pip list
         cd /opt/hostedtoolcache/Python/3.8.6/x64/lib/python3.8/site-packages
-        ls -d */
         cd "/home/runner/work/AzureStorageWrapper/AzureStorageWrapper/test"
         echo $PWD
 
