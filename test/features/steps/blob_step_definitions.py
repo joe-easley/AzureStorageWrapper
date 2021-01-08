@@ -49,8 +49,7 @@ def check_list_of_blobs(context):
 
 @when("a upload to blob function is called")
 def upload_file_to_blob(context):
-    print(os.getcwd())
-    file_location = r"\data\blob.txt"
-    with open(file_location, "rb") as f:
+    path_to_file = f"{os.getcwd()}/data/blob.txt"
+    with open(path_to_file, "rb") as f:
         blob_to_upload = f.read()
     context.blob_functions(blob_name=context.blob_name, data=blob_to_upload)
