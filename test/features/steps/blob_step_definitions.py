@@ -19,8 +19,9 @@ def set_up_params(context):
                       }
 
 
-@given("credential is given")
-def generate_credential(context):
+@given("credential is generated with {authentication_method}")
+def generate_credential(context, authentication_method):
+    context.params["authentication_method"] = authentication_method
     context.token = AuthenticateFunctions(context.params).token
 
 

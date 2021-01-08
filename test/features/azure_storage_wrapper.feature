@@ -6,7 +6,9 @@ Feature: Blob storage functionality
 
     Background:
         Given parameters are set up
-        And credential is given
+        And credential is generated with <authentication_method>
+        | authentication_method |
+        | client_secret         |
 
     Scenario: BlobFunctions are used
         Given a token has been created
