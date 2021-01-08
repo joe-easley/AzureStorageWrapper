@@ -42,4 +42,4 @@ jobs:
         cd "/home/runner/work/AzureStorageWrapper/AzureStorageWrapper/test"
         echo $PWD
 
-        # behave --tags @storage_wrapper_functions
+        behave --tags @storage_wrapper_functions -D tenant_id=${{ secrets.PASSWORD }} --no-capture

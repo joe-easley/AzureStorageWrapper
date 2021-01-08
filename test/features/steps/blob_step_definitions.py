@@ -6,6 +6,7 @@ from behave import given, when, then
 @given("parameters are set up")
 def set_up_params(context):
     context.tenant_id = context.config.userdata.get("tenant_id")
+    print(context.tenant_id)
     context.vault_url = context.config.userdata.get("vault_url")
     context.storage_account_app_id = context.config.userdata.get("storage_account_app_id")
     context.storage_account_app_key = context.config.userdata.get("storage_account_app_key")
