@@ -1,6 +1,7 @@
 from storagewrapper.blob import BlobFunctions
 from storagewrapper.authenticate import AuthenticateFunctions
 from behave import given, when, then
+import os
 
 
 @given("parameters are set up")
@@ -48,6 +49,7 @@ def check_list_of_blobs(context):
 
 @when("a upload to blob function is called")
 def upload_file_to_blob(context):
+    print(os.getcwd())
     file_location = r"test\data\blob.txt"
     with open(file_location, "rb") as f:
         blob_to_upload = f.read()
