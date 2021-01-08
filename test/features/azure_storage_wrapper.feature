@@ -13,3 +13,5 @@ Feature: Blob storage functionality
     Scenario: BlobFunctions are used
         # Given a token has been created
         And BlobFunctions has been instantiated with all permissions
+        When a upload to blob function is called
+        Then list blobs function is used
