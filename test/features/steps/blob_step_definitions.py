@@ -65,6 +65,7 @@ def delete_newly_uploaded_blob(context):
     blob_deleted = context.blob_functions.delete_blob(context.blob_name)
     assert blob_deleted is True
 
+
 @then("{container} is deleted")
 def delete_new_container(context, container):
     container_deleted = context.blob_functions.delete_container(container_name=container)
