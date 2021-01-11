@@ -83,7 +83,7 @@ class BlobFunctions:
             sas_token = generate_container_sas(
                 account_name=self.storage_account_name,
                 container_name=self.container_name,
-                access_key=access_key,
+                account_key=access_key,
                 permission=csp,
                 expiry=datetime.utcnow() + timedelta(hours=self.sas_duration)
             )
@@ -205,7 +205,7 @@ class BlobFunctions:
 
         return None
 
-    def upload_blob(self, blob_name, data, blob_type="BlockBlob"):
+    def upload_blob(self, blob_name, data, overwrite=True, blob_type="BlockBlob"):
         """Creates a new blob from a data source with automatic chunking
 
         Args:
@@ -218,7 +218,7 @@ class BlobFunctions:
         """
 
         blob_client = self._create_blob_client_from_url(blob_name)
-        blob_client.upload_blob(data=data, blob_type=blob_type)
+        blob_client.upload_blob(data=data, blob_type=blob_type, overwrite=overwrite)
 
         return blob_client
 
