@@ -34,7 +34,7 @@ def generate_credential(context, authentication_method):
 @given("BlobFunctions has been instantiated with all permissions")
 def instantiate_blob_functions(context):
     context.blob_functions = BlobFunctions(token=context.token, storage_account_name=context.storage_account_name,
-                                           container_name=context.container_name)
+                                           container_name=context.container_name, sas_duration=2)
 
 
 @when("list blobs function is used")
@@ -49,7 +49,7 @@ def check_list_of_blobs(context):
 
 @when("a upload to blob function is called")
 def upload_file_to_blob(context):
-    path_to_file = f"{os.getcwd()}/data/blob.txt"
+    path_to_file = f"{os.getcwd()}/data/{context.blob_name}"
     # with open(path_to_file, "rb") as f:
     #     blob_to_upload = f.read()
 
