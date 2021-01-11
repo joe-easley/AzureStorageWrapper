@@ -27,13 +27,31 @@ def generate_credential(context, authentication_method):
     assert context.token is not None
 
 
-@given("BlobFunctions has been instantiated with all permissions")
-def instantiate_blob_functions(context):
-    path_to_file = f"{os.getcwd()}/data/{context.blob_name}"
+@given("BlobFunctions has been instantiated with all permissions and {container} name")
+def instantiate_blob_functions(context, container):
     context.blob_functions = BlobFunctions(token=context.token, storage_account_name=context.storage_account_name,
-                                           container_name=context.container_name, sas_duration=2, sas_method="AccessKey", vault_url=context.vault_url, access_key_secret_name="storagewrapperaccountaccesskey"
+                                           container_name=container, sas_duration=2, sas_method="AccessKey", vault_url=context.vault_url, access_key_secret_name="storagewrapperaccountaccesskey"
                                            )
-    context.blob_functions.upload_blob(blob_name=context.blob_name, data=path_to_file)
+
+
+@when("a {container} is created")
+def create_test_container(context, container):
+    creation_status = context.blob_functions.create_container(container_name=container)
+    assert creation_status is True
+
+
+@when("a upload to blob function is called")
+def upload_file_to_blob(context):
+    path_to_file = f"{os.getcwd()}/data/{context.blob_name}"
+    blob_client = context.blob_functions.upload_blob(blob_name=context.blob_name, data=path_to_file)
+    assert blob_client is not None
+
+
+@then("all {container} in storage account are listed")
+def list_all_containers(context, container):
+    list_of_containers = context.blob_functions.list_containers()
+    for container in list_of_containers:
+        print(container.name)
 
 
 @then("list blobs function is used")
@@ -42,7 +60,12 @@ def use_list_blobs_function(context):
     assert context.list_blobs[0] == context.blob_name
 
 
-@when("a upload to blob function is called")
-def upload_file_to_blob(context):
-    path_to_file = f"{os.getcwd()}/data/{context.blob_name}"
-    context.blob_functions.upload_blob(blob_name=context.blob_name, data=path_to_file)
+@then("blob is deleted")
+def delete_newly_uploaded_blob(context):
+    blob_deleted = context.blob_functions.delete_blob(context.blob_name)
+    assert blob_deleted is True
+
+@then("{container} is deleted")
+def delete_new_container(context, container):
+    container_deleted = context.blob_functions.delete_container(container_name=container)
+    assert container_deleted is True

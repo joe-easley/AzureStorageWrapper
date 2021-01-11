@@ -198,12 +198,12 @@ class BlobFunctions:
             blob_name (str): name of blob to delete
 
         Returns:
-            None: None is returned if blob successfully deleted
+            True: True is returned if blob successfully deleted
         """
 
         self.container_client.delete_blob(blob_name, delete_snapshots=None)
 
-        return None
+        return True
 
     def upload_blob(self, blob_name, data, overwrite=True, blob_type="BlockBlob"):
         """Creates a new blob from a data source with automatic chunking
@@ -235,7 +235,7 @@ class BlobFunctions:
             timeout (int, optional): Expressed in seconds. Defaults to 20
 
         Returns:
-            None if deletion is successful
+            True if deletion is successful
 
         Raises:
             Exception: If container given does not match instantiated version exception is raised
@@ -243,6 +243,8 @@ class BlobFunctions:
         if container_name == self.container_name:
 
             self.container_client.delete_container()
+
+            return True
 
         else:
             raise Exception("Container specified for deletion does not match that instantiated in BlobFunctions class call")
@@ -263,7 +265,12 @@ class BlobFunctions:
         """
         if container_name == self.container_name:
 
-            self.container_client.create_container(container_name, metadata)
+            if metadata is None:
+                self.blob_service_client.create_container(container_name)
+
+            elif metadata is not None:
+
+                self.blob_service_client.create_container(container_name, metadata)
 
             return True
 
