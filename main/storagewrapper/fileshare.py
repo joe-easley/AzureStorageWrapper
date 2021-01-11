@@ -1,6 +1,6 @@
 from azure.keyvault.secrets import SecretClient
 from azure.storage.file import FileService
-from azure.storage.fileshare import generate_account_sas, ResourceTypes, AccountSasPermissions, ShareServiceClient, ShareFileClient
+from azure.storage.fileshare import generate_account_sas, ResourceTypes, AccountSasPermissions, ShareServiceClient
 from datetime import datetime, timedelta
 
 
@@ -178,10 +178,9 @@ class FileShareFunctions:
             status = self.share_service_client.create_share(share_name, metadata, quota, timeout)
 
             return status
-    
-    def create_file(self):
-        ShareFileClient(account_url=, share_name=)
 
+    # def create_file(self):
+    #     ShareFileClient(account_url=, share_name=)
 
     def delete_directory(self, share_name, directory_name, fail_not_exist=False, timeout=20):
         """Deletes the specified empty directory. Note that the directory must be empty before it can be deleted.

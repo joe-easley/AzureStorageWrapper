@@ -1,7 +1,7 @@
 from storagewrapper.fileshare import FileShareFunctions
 from storagewrapper.authenticate import AuthenticateFunctions
-from behave import given, when, then
-import os
+from behave import given, when
+# import os
 
 
 @given("parameters are set up for fileshare")
@@ -34,14 +34,19 @@ def instantiate_blob_functions(context):
                                                      secret_name="fileshareaccesskey")
     assert context.fileshare_functions is not None
 
+
 @when("file{share} is called for creation")
 def create_new_file_share(context, share):
     share_client = context.fileshare_functions.create_share(share_name=share)
 
     assert share_client is not None
 
+
 @when("a {directory} is created in {share}")
 def create_directory_in_share(context, directory, share):
     status = context.fileshare_functions.create_fileshare_directory(file_share_name=share, directory_path=directory)
 
     assert status is True
+
+# @when("a {file} is uploaded to {share}")
+# def upload_file_to_new_share(context, file, share):
