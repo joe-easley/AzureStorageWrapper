@@ -1,6 +1,8 @@
 # AzureStorageWrapper
 A wrapper for azure storage tools
 
+[![Actions Status](https://github.com/joe-easley/AzureStorageWrapper/workflows/Behave%20Tests/badge.svg)](https://github.com/joe-easley/AzureStorageWrapper/actions)
+
 ## Setup
 
 The azure storage wrapper requires a configuration dictionary to be setup in order to successfully authenticate and run commands. The module is currently setup to receive a dictionary similar to below.
