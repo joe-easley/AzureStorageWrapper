@@ -63,7 +63,7 @@ class BlobFunctions:
         csp = self.__define_sas_permissions()
 
         if self.sas_method == "UserDelegationKey":
-            udk = self.blob_service_client.get_user_delegation_key(key_start_time=datetime.utcnow(), 
+            udk = self.blob_service_client.get_user_delegation_key(key_start_time=datetime.utcnow(),
                                                                    key_expiry_time=datetime.utcnow() + timedelta(hours=self.sas_duration))
 
             sas_token = generate_container_sas(
@@ -103,7 +103,7 @@ class BlobFunctions:
         secret_client = SecretClient(vault_url=self.vault_url, credential=self.token)
         secret = secret_client.get_secret(self.access_key_secret_name)
 
-        return secret.value        
+        return secret.value
 
     def __define_sas_permissions(self):
 
