@@ -1,4 +1,5 @@
 from azure.storage.blob import BlobServiceClient, generate_container_sas, ContainerSasPermissions, BlobClient
+from azure.keyvault.secrets import SecretClient
 from datetime import datetime, timedelta
 
 
@@ -20,12 +21,15 @@ class BlobFunctions:
 
     """
 
-    def __init__(self, token, storage_account_name, container_name=None, sas_duration=1, sas_permissions=None):
+    def __init__(self, token, storage_account_name, container_name=None, sas_duration=1, sas_permissions=None, sas_method="UserDelegationKey", vault_url=None, access_key_secret_name=None):
         self.token = token
         self.storage_account_name = storage_account_name
         self.container_name = container_name
         self.sas_duration = sas_duration
         self.sas_permissions = sas_permissions
+        self.sas_method = sas_method
+        self.vault_url = vault_url
+        self.access_key_secret_name = access_key_secret_name
         self.blob_service_client = self._create_blob_service_client()
         self.container_client = self._create_container_client()
 
@@ -46,21 +50,60 @@ class BlobFunctions:
 
     def _create_sas_key(self):
 
-        sas_duration = self.sas_duration
-
-        udk = self.blob_service_client.get_user_delegation_key(key_start_time=datetime.utcnow(), key_expiry_time=datetime.utcnow() + timedelta(hours=sas_duration))
-
-        csp = self.__define_sas_permissions()
-
-        sas_token = generate_container_sas(
-            account_name=self.storage_account_name,
-            container_name=self.container_name,
-            user_delegation_key=udk,
-            permission=csp,
-            expiry=datetime.utcnow() + timedelta(hours=sas_duration)
-        )
+        sas_token = self.__access_key_or_udk()
 
         return sas_token
+
+    def __access_key_or_udk(self):
+        """Checks if access key is required or if User Delegation Key method is
+
+        Returns:
+            str: SAS token
+        """
+        csp = self.__define_sas_permissions()
+
+        if self.sas_method == "UserDelegationKey":
+            udk = self.blob_service_client.get_user_delegation_key(key_start_time=datetime.utcnow(), 
+                                                                   key_expiry_time=datetime.utcnow() + timedelta(hours=self.sas_duration))
+
+            sas_token = generate_container_sas(
+                account_name=self.storage_account_name,
+                container_name=self.container_name,
+                user_delegation_key=udk,
+                permission=csp,
+                expiry=datetime.utcnow() + timedelta(hours=self.sas_duration)
+            )
+
+            return sas_token
+
+        elif self.sas_method == "AccessKey":
+
+            access_key = self.__get_secret()
+
+            sas_token = generate_container_sas(
+                account_name=self.storage_account_name,
+                container_name=self.container_name,
+                access_key=access_key,
+                permission=csp,
+                expiry=datetime.utcnow() + timedelta(hours=self.sas_duration)
+            )
+
+            return sas_token
+
+        else:
+            raise Exception("sas_method not UserDelegationKey or AccessKey")
+
+    def __get_secret(self):
+        """
+        Retrieves storage acct access key from key vault
+
+        return secret
+        """
+
+        secret_client = SecretClient(vault_url=self.vault_url, credential=self.token)
+        secret = secret_client.get_secret(self.access_key_secret_name)
+
+        return secret.value        
 
     def __define_sas_permissions(self):
 

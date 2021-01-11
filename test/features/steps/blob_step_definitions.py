@@ -34,7 +34,7 @@ def generate_credential(context, authentication_method):
 @given("BlobFunctions has been instantiated with all permissions")
 def instantiate_blob_functions(context):
     context.blob_functions = BlobFunctions(token=context.token, storage_account_name=context.storage_account_name,
-                                           container_name=context.container_name, sas_duration=2)
+                                           container_name=context.container_name, sas_duration=2, sas_method="AccessKey", vault_url=context.vault_url)
 
 
 @when("list blobs function is used")
