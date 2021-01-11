@@ -4,14 +4,13 @@ from behave import given, when, then
 import os
 
 
-@given("parameters are set up")
+@given("parameters are set up for blob")
 def set_up_params(context):
-    context.tenant_id = str(context.config.userdata.get("tenant_id"))
-    context.vault_url = str(context.config.userdata.get("vault_url"))
-    context.storage_account_app_id = str(context.config.userdata.get("storage_account_app_id"))
-    context.storage_account_app_key = str(context.config.userdata.get("storage_account_app_key"))
+    context.tenant_id = context.config.userdata.get("tenant_id")
+    context.vault_url = context.config.userdata.get("vault_url")
+    context.storage_account_app_id = context.config.userdata.get("storage_account_app_id")
+    context.storage_account_app_key = context.config.userdata.get("storage_account_app_key")
     context.storage_account_name = context.config.userdata.get("storage_account_name")
-    context.container_name = context.config.userdata.get("container_name")
     context.blob_name = "blob.txt"
     context.params = {"tenant_id": context.tenant_id,
                       "storage_account_app_id": context.storage_account_app_id,
@@ -19,11 +18,12 @@ def set_up_params(context):
                       "vault_backed": False}
 
 
-@given("credential is generated with {authentication_method}")
+@given("credential is generated with {authentication_method} for blob")
 def generate_credential(context, authentication_method):
 
     context.params["authentication_method"] = authentication_method
     context.token = AuthenticateFunctions(context.params).token
+
     assert context.token is not None
 
 

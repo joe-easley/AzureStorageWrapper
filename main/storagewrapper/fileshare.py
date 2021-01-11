@@ -1,6 +1,6 @@
 from azure.keyvault.secrets import SecretClient
 from azure.storage.file import FileService
-from azure.storage.fileshare import generate_account_sas, ResourceTypes, AccountSasPermissions
+from azure.storage.fileshare import generate_account_sas, ResourceTypes, AccountSasPermissions, ShareServiceClient, ShareFileClient
 from datetime import datetime, timedelta
 
 
@@ -42,6 +42,11 @@ class FileShareFunctions:
         file_service = FileService(account_name=self.storage_account_name, sas_token=fs_sas_token)
 
         return file_service
+
+    def _create_share_service_client(self, share_name):
+        account_url = f"https://{self.storage_account_name}.file.core.windows.net/{share_name}"
+        share_service_client = ShareServiceClient(account_url=account_url, credential=self.token)
+        return share_service_client
 
     def __get_secret(self):
         """
@@ -108,19 +113,33 @@ class FileShareFunctions:
         """Creates a new file from an array of bytes, or updates the content of an existing file, with automatic chunking and progress notifications.
 
         Args:
+
             share_name (str): Name of existing share
+
             directory_name (str): The path to the directory.
+
             file_name (str): Name of file to create or update.
+
             file (str): Content of file as an array of bytes.
+
             index (int, optional): Start index in the array of bytes. Defaults to 0.
+
             count (int, optional): Number of bytes to upload. Set to None or negative value to upload all bytes starting from index. Defaults to None.
+
             content_settings (ContentSettings obj, optional): ContentSettings object used to set file properties. Defaults to None.
+
             metadata (dict, optional): Name-value pairs associated with the file as metadata. Defaults to None.
+
             validate_content (bool, optional): If true, calculates an MD5 hash for each range of the file. Defaults to False.
+
             progress_callback ([type], optional): Callback for progress with signature function(current, total). Defaults to None.
+
             max_connections (int, optional): Maximum number of parallel connections to use. Defaults to 2.
+
             file_permission (str, optional): File permission, a portable SDDL. Defaults to None.
+
             smb_properties (SMbProperties obj, optional): Sets the SMB related file properties. Defaults to None.
+
             timeout (int, optional):  expressed in seconds. Defaults to 30.
         """
 
@@ -128,24 +147,41 @@ class FileShareFunctions:
                                                  index, count, content_settings, metadata, validate_content, progress_callback,
                                                  max_connections, file_permission, smb_properties, timeout)
 
-    def create_share(self, share_name, metadata=None, quota=None, fail_on_exist=False, timeout=None):
+    def create_share(self, share_name, metadata=None, quota=None, timeout=None, share_service_client=None):
         """Creates a new share in storage_account. If the share with the same name already exists,
         the operation fails on the service. By default, the exception is swallowed by the client unless exposed with fail_on_exist
 
         Args:
+
             share_name (str): Name of share to create
+
             metadata (dict, optional): A dict with name_value pairs to associate with the share as metadata. Defaults to None.
+
             quota (int, optional): Specifies the maximum size of the share, in gigabytes. Must be greater than 0, and less than or equal to 5TB (5120). Defaults to None.
-            fail_on_exist (bool, optional): Specify whether to throw an exception when the share exists. Defaults to False.
+
             timeout (int, optional): expressed in seconds. Defaults to None.
+
+            share_service_client (ShareServiceClient obj, optional): If share service client exists can be used here, otherwise a new one is generated. Defaults to None.
 
         Returns:
             True if share is created, False if already exists
         """
+        if share_service_client is None:
 
-        status = self.file_service.create_share(share_name, metadata, quota, fail_on_exist, timeout)
+            share_service_client = self._create_share_service_client(share_name=share_name)
+            status = self.share_service_client.create_share(share_name, metadata, quota, timeout)
 
-        return status
+            return status
+
+        else:
+
+            status = self.share_service_client.create_share(share_name, metadata, quota, timeout)
+
+            return status
+    
+    def create_file(self):
+        ShareFileClient(account_url=, share_name=)
+
 
     def delete_directory(self, share_name, directory_name, fail_not_exist=False, timeout=20):
         """Deletes the specified empty directory. Note that the directory must be empty before it can be deleted.
@@ -177,23 +213,34 @@ class FileShareFunctions:
 
         self.file_service.delete_file(share_name, directory_name, file_name, timeout)
 
-    def delete_share(self, share_name, fail_not_exist=False, timeout=10, snapshot=None, delete_snapshots=None):
+    def delete_share(self, share_name, timeout=10, delete_snapshots=None, share_service_client=None):
         """Marks the specified share for deletion. If the share does not exist, the operation fails on the service
 
         Args:
+
             share_name (str): [description]
-            fail_not_exist (bool, optional): [description]. Defaults to False.
+
             timeout (int, optional): expressed in seconds. Defaults to 10.
-            snapshot (str, optional): A string that represents the snapshot version, if applicable. Specify this argument to delete a specific snapshot only. delete_snapshots must be None if this is specified. Defaults to None.
+
             delete_snapshots (DeleteSnapshot, optional): To delete a share that has snapshots, this must be specified as DeleteSnapshot.Include. Defaults to None.
+
+            share_service_client (ShareServiceClient obj, optional): If share service client exists can be used here, otherwise a new one is generated. Defaults to None.
 
         Returns:
             bool: True if share is deleted, False share doesn't exist.
         """
+        if share_service_client is None:
 
-        status = self.file_service.delete_share(share_name, fail_not_exist, timeout, snapshot, delete_snapshots)
+            share_service_client = self._create_share_service_client(share_name=share_name)
+            self.share_service_client.delete_share(share_name, timeout=timeout, delete_snapshots=delete_snapshots)
 
-        return status
+            return True
+
+        else:
+
+            self.share_service_client.delete_share(share_name, timeout=timeout, delete_snapshots=delete_snapshots)
+
+            return True
 
     def exists(self, share_name, directory_name=None, file_name=None, timeout=20, snapshot=None):
         """Returns a boolean indicating whether the share exists if only share name is given

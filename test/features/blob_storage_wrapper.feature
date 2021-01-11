@@ -1,15 +1,13 @@
-@storage_wrapper_functions
+@blob_wrapper_functions
 
-Feature: Blob storage functionality
+Feature: Blob torage functionality
 
-    Feature Description
+    Tests blob functionality developed for the azure storage wrapper library
 
-    Background:
-        Given parameters are set up
 
     Scenario Outline: BlobFunctions are used
-        # Given a token has been created
-        Given credential is generated with <authentication_method>
+        Given parameters are set up for blob
+        Given credential is generated with <authentication_method> for blob
         And BlobFunctions has been instantiated with all permissions and <container> name
         When a <container> is created
         When a upload to blob function is called
