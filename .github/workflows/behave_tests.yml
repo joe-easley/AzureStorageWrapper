@@ -39,5 +39,6 @@ jobs:
         cd /opt/hostedtoolcache/Python/3.8.6/x64/lib/python3.8/site-packages
         cd "/home/runner/work/AzureStorageWrapper/AzureStorageWrapper/test"
         echo $PWD
-
+        current_date_time="`date +%Y%m%d%H%M%S`";
+        echo $current_date_time;
         behave --tags @storage_wrapper_functions -D tenant_id=${{ secrets.tenantId }} -D vault_url=${{ secrets.vaultURL }} -D storage_account_app_id=${{ secrets.storageAccountAppId }} -D storage_account_app_key=${{ secrets.storageAccountAppKey }} -D storage_account_name=${{ secrets.storageAccountName }} -D container_name=${{ secrets.containerName }} --no-capture
