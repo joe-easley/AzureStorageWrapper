@@ -45,7 +45,8 @@ class FileShareFunctions:
 
     def _create_share_service_client(self, share_name):
         account_url = f"https://{self.storage_account_name}.file.core.windows.net/{share_name}"
-        share_service_client = ShareServiceClient(account_url=account_url, credential=self.token)
+        sas_token = self._create_sas_for_fileshare()
+        share_service_client = ShareServiceClient(account_url=account_url, credential=sas_token)
         return share_service_client
 
     def __get_secret(self):
