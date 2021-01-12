@@ -147,7 +147,7 @@ class FileShareFunctions:
         self.file_service.create_file_from_bytes(share_name, directory_name, file_name, file,
                                                  index, count, content_settings, metadata, validate_content, progress_callback,
                                                  max_connections, file_permission, smb_properties, timeout)
-    
+
     def __filter_vars(self, **kwargs):
         arguments = {}
 
@@ -177,7 +177,7 @@ class FileShareFunctions:
             True if share is created, False if already exists
         """
 
-        arguments = self.__filter_vars(share_name, metadata, quota, timeout, share_service_client)
+        arguments = self.__filter_vars(share_name=share_name, metadata=metadata, quota=quota, timeout=timeout, share_service_client=share_service_client)
         if share_service_client is None:
 
             self.share_service_client = self._create_share_service_client(share_name=share_name)
