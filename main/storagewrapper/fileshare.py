@@ -147,8 +147,17 @@ class FileShareFunctions:
         self.file_service.create_file_from_bytes(share_name, directory_name, file_name, file,
                                                  index, count, content_settings, metadata, validate_content, progress_callback,
                                                  max_connections, file_permission, smb_properties, timeout)
+    
+    def __filter_vars(self, **kwargs):
+        arguments = {}
 
-    def create_share(self, share_name, metadata=None, quota=None, timeout=None, share_service_client=None):
+        for key, value in kwargs.items():
+            if value is not None:
+                arguments[key] = value
+
+        return arguments
+
+    def create_share(self, share_name, metadata=None, quota=1, timeout=10, share_service_client=None):
         """Creates a new share in storage_account. If the share with the same name already exists,
         the operation fails on the service. By default, the exception is swallowed by the client unless exposed with fail_on_exist
 
@@ -158,25 +167,27 @@ class FileShareFunctions:
 
             metadata (dict, optional): A dict with name_value pairs to associate with the share as metadata. Defaults to None.
 
-            quota (int, optional): Specifies the maximum size of the share, in gigabytes. Must be greater than 0, and less than or equal to 5TB (5120). Defaults to None.
+            quota (int, optional): Specifies the maximum size of the share, in gigabytes. Must be greater than 0, and less than or equal to 5TB (5120). Defaults to 1.
 
-            timeout (int, optional): expressed in seconds. Defaults to None.
+            timeout (int, optional): expressed in seconds. Defaults to 10.
 
             share_service_client (ShareServiceClient obj, optional): If share service client exists can be used here, otherwise a new one is generated. Defaults to None.
 
         Returns:
             True if share is created, False if already exists
         """
+
+        arguments = self.__filter_vars(share_name, metadata, quota, timeout, share_service_client)
         if share_service_client is None:
 
             self.share_service_client = self._create_share_service_client(share_name=share_name)
-            status = self.share_service_client.create_share(share_name, metadata, quota, timeout)
+            status = self.share_service_client.create_share(**arguments)
 
             return status
 
         else:
 
-            status = self.share_service_client.create_share(share_name, metadata, quota, timeout)
+            status = self.share_service_client.create_share(**arguments)
 
             return status
 
