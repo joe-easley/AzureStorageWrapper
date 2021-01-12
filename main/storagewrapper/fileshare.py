@@ -49,7 +49,7 @@ class FileShareFunctions:
                                                                                permission=AccountSasPermissions(read=True, write=True),
                                                                                expiry=datetime.utcnow() + timedelta(hours=self.sas_duration)
                                                                                )
-        account_url = f"https://{self.storage_account_name}.file.core.windows.net/{share_name}?{sas_token}"
+        account_url = f"https://{self.storage_account_name}.file.core.windows.net/{share_name}/?{sas_token}"
         share_service_client = ShareServiceClient(account_url=account_url)
 
         return share_service_client
