@@ -169,7 +169,7 @@ class FileShareFunctions:
         """
         if share_service_client is None:
 
-            share_service_client = self._create_share_service_client(share_name=share_name)
+            self.share_service_client = self._create_share_service_client(share_name=share_name)
             status = self.share_service_client.create_share(share_name, metadata, quota, timeout)
 
             return status
