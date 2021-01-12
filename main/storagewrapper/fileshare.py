@@ -48,7 +48,7 @@ class FileShareFunctions:
         sas_token = self.file_service.generate_account_shared_access_signature(resource_types=ResourceTypes(service=True, container=True, object=True),
                                                                                permission=AccountSasPermissions(read=True, write=True),
                                                                                expiry=datetime.utcnow() + timedelta(hours=self.sas_duration)
-        )
+                                                                               )
         share_service_client = ShareServiceClient(account_url=account_url, credential=sas_token)
         return share_service_client
 
