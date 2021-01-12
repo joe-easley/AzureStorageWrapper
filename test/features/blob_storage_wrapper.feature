@@ -1,6 +1,6 @@
 @blob_wrapper_functions
 
-Feature: Blob torage functionality
+Feature: Blob storage functionality
 
     Tests blob functionality developed for the azure storage wrapper library
 

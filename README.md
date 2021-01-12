@@ -1,7 +1,6 @@
 # AzureStorageWrapper
-A wrapper for azure storage tools
-
 [![Actions Status](https://github.com/joe-easley/AzureStorageWrapper/workflows/Behave%20Tests/badge.svg)](https://github.com/joe-easley/AzureStorageWrapper/actions)
+A wrapper for azure storage tools
 
 ## Setup
 
