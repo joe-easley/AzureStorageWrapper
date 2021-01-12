@@ -44,12 +44,14 @@ class FileShareFunctions:
         return file_service
 
     def _create_share_service_client(self, share_name):
-        account_url = f"https://{self.storage_account_name}.file.core.windows.net/{share_name}"
+
         sas_token = self.file_service.generate_account_shared_access_signature(resource_types=ResourceTypes(service=True, container=True, object=True),
                                                                                permission=AccountSasPermissions(read=True, write=True),
                                                                                expiry=datetime.utcnow() + timedelta(hours=self.sas_duration)
                                                                                )
-        share_service_client = ShareServiceClient(account_url=account_url, credential=sas_token)
+        account_url = f"https://{self.storage_account_name}.file.core.windows.net/{share_name}?{sas_token}"
+        share_service_client = ShareServiceClient(account_url=account_url)
+
         return share_service_client
 
     def __get_secret(self):
