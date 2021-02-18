@@ -96,21 +96,31 @@ Copies a file from blob or other file share to a specified share machine. On com
 
 Creates a new share in storage_account
 
+
+
     delete_directory(share_name, directory_name)
 
 Deletes the specified empty directory. Note that the directory must be empty before it can be deleted. Attempting to delete directories that are not empty will fail.
+
+
 
     delete_file(share_name, file_name)
 
 Marks the specified file for deletion. The file is later deleted during garbage collection.
 
+
+
     list_directories_and_files(self, share_name, directory_name, name_starts_with, timeout)
 
 Returns a generator to list the directories and files under the specified share.
 
+
+
     list_shares(name_starts_with, include_metadata, include_snapshots, timeout)
 
 Returns list of shares in storage account
+
+
 
     upload_file(share_name, directory_path, file_name, data, metadata, length, max_concurrency)
 
