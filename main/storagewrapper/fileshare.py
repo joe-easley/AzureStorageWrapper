@@ -5,12 +5,32 @@ from datetime import datetime, timedelta
 
 class FileShareFunctions:
 
-    def __init__(self, token, storage_account_name, sas_duration=1, vault_url=None, secret_name=None):
-        self.token = token
+    def __init__(self, storage_account_name, sas_duration=1, storage_account_access_key=None, vault_url=None, secret_name=None, token=None):
+        """
+        Initialiser for FileShareFunctions class obj
+
+        For authentication requirements to be met one of the following two configurations must be provided
+
+        1. A Storage Account Access Key is provided during initialisation
+        2. A token credential from AuthenticateFunctions, along with a key vault url and secret name. The storage account
+        access key must be stored as a secret in this key vault
+
+        Args:
+            storage_account_name (str): Name of the storage account
+            sas_duration (str, optional): This module creates SAS tokens on the fly for certain storage operations. Set the duration (in hours) here, minimum 1 hour. Default is 1 hour.
+            storage_account_access_key (str, optional): Access key that will authenticate operations of this library
+            vault_url (str, optional): URL of key vault in which account access key is stored
+            secret_name (str, optional): Name of the access key secret which is stored in key vault
+            token(token obj, optional): Credential created in AuthenticateFunctions
+        """
+        
+        self.storage_account_name = storage_account_name
+        self.sas_duration = sas_duration
+        self.storage_account_access_key = storage_account_access_key
         self.vault_url = vault_url
         self.secret_name = secret_name
-        self.sas_duration = sas_duration
-        self.storage_account_name = storage_account_name
+        self.token = token
+        
 
     def _create_sas_for_fileshare(self):
         """
@@ -18,17 +38,30 @@ class FileShareFunctions:
         Requires key to account being stored in key vault
         param
         """
-        secret = self.__get_secret()
+        if self.storage_account_access_key is None:
+            secret = self.__get_secret()
 
-        fs_sas_token = generate_account_sas(
-            account_name=self.storage_account_name,
-            account_key=secret,
-            resource_types=ResourceTypes(service=True, container=True, object=True),
-            permission=AccountSasPermissions(read=True, write=True),
-            expiry=datetime.utcnow() + timedelta(hours=self.sas_duration)
-        )
+            fs_sas_token = generate_account_sas(
+                account_name=self.storage_account_name,
+                account_key=secret,
+                resource_types=ResourceTypes(service=True, container=True, object=True),
+                permission=AccountSasPermissions(read=True, write=True),
+                expiry=datetime.utcnow() + timedelta(hours=self.sas_duration)
+            )
 
-        return fs_sas_token
+            return fs_sas_token
+        
+        else:
+
+            fs_sas_token = generate_account_sas(
+                account_name=self.storage_account_name,
+                account_key=self.storage_account_access_key,
+                resource_types=ResourceTypes(service=True, container=True, object=True),
+                permission=AccountSasPermissions(read=True, write=True),
+                expiry=datetime.utcnow() + timedelta(hours=self.sas_duration)
+            )
+
+            return fs_sas_token
 
     def _create_share_service_client(self):
 
