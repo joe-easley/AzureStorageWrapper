@@ -114,21 +114,22 @@ Returns list of shares in storage account
 
 Uploads a file to a file share
 
+## Currently unsupported operations
 If there are other operations that are unsupported by this wrapper then you can generate the following clients:
 
-1. [create_share_service_client()](https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.shareserviceclient?view=azure-python)
+- [create_share_service_client()](https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.shareserviceclient?view=azure-python)
 
 This method will allow access to any of the the ShareServiceClient class methods
 
-2. [create_share_directory_client(share_name, directory)](https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.sharedirectoryclient?view=azure-python)
+- [create_share_directory_client(share_name, directory)](https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.sharedirectoryclient?view=azure-python)
 
 This method will allow access to any of the the ShareDirectoryClient class methods
 
-3. [create_share_client(share_name)](https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.shareclient?view=azure-python)
+- [create_share_client(share_name)](https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.shareclient?view=azure-python)
 
 This method will allow access to any of the the ShareClient class methods
 
-4. [create_share_file_client(share_name, file_path)](https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.sharefileclient?view=azure-python)
+- [create_share_file_client(share_name, file_path)](https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.sharefileclient?view=azure-python)
 
 ## Queue
 
