@@ -1,6 +1,6 @@
 from azure.keyvault.secrets import SecretClient
 from azure.storage.file import FileService
-from azure.storage.fileshare import generate_account_sas, ResourceTypes, AccountSasPermissions, ShareServiceClient
+from azure.storage.fileshare import generate_account_sas, ResourceTypes, AccountSasPermissions, ShareServiceClient, ShareClient, ShareDirectoryClient
 from datetime import datetime, timedelta
 
 
@@ -43,16 +43,31 @@ class FileShareFunctions:
 
         return file_service
 
-    def _create_share_service_client(self, share_name):
+    def _create_share_service_client(self):
 
-        sas_token = self.file_service.generate_account_shared_access_signature(resource_types=ResourceTypes(service=True, container=True, object=True),
-                                                                               permission=AccountSasPermissions(read=True, write=True),
-                                                                               expiry=datetime.utcnow() + timedelta(hours=self.sas_duration)
-                                                                               )
-        account_url = f"https://{self.storage_account_name}.file.core.windows.net/{share_name}/?{sas_token}"
-        share_service_client = ShareServiceClient(account_url=account_url)
+        sas_token = self._create_sas_for_fileshare()
+        account_url = f"https://{self.storage_account_name}.file.core.windows.net/"
+        share_service_client = ShareServiceClient(account_url=account_url, credential=sas_token)
 
         return share_service_client
+
+    def _get_share_client(self, share_name):
+        share_service_client = self._create_share_service_client()
+        share_client = share_service_client.get_share_client(share=share_name)
+
+        return share_client
+
+    def _get_directory_client(self, share_name, directory_path):
+        share_client = self._get_share_client(share_name)
+        share_directory_client = share_client.get_directory_client(directory_path=directory_path)
+
+        return share_directory_client
+
+    def _get_share_file_client(self, share_name, file_path):
+        share_client = self._get_share_client(share_name)
+        share_file_client = share_client.get_file_client(file_path)
+
+        return share_file_client
 
     def __get_secret(self):
         """
@@ -71,24 +86,20 @@ class FileShareFunctions:
 
         return secret.value
 
-    def create_fileshare_directory(self, file_share_name, directory_path, metadata=None, fail_on_exist=False,
-                                   file_permission=None, smb_properties=None, timeout=20):
-        """Creates a directory in a specified share. If creating low level dir high level must exist.
+    def create_fileshare_directory(self, share_name, directory_path):
+        """Creates a new directory under the directory referenced by the client..
 
         Args:
-            file_share_name (str): Name of existing share.
+            share_name (str): Name of existing share.
             directory_path (str): Name of directory to create, including the path to the parent directory
-            metadata (dict(str, str), optional): A dict with name_value pairs to associate with the share as metadata. Defaults to None.
-            fail_on_exist (bool, optional): specify whether to throw an exception when the directory exists. False by default. Defaults to False.
-            file_permission (str): File permission, a portable SDDL. Defaults to None
-            smb_properties (SMBProperties Class, optional): Sets the SMB related file properties. Defaults to None.
-            timeout (int, optional): The timeout parameter is expressed in seconds.. Defaults to 20.
 
         Returns:
-            True if directory is created, False if directory already exists
+            Directory-updated property dict (Etag and last modified).
         """
 
-        status = self.file_service.create_directory(share_name=file_share_name, directory_name=directory_path)
+        share_directory_client = self._get_directory_client(share_name, directory_path)
+
+        status = share_directory_client.create_directory()
 
         return status
 
@@ -185,7 +196,7 @@ class FileShareFunctions:
         arguments = self.__filter_vars(share_name=share_name, metadata=metadata, quota=quota, timeout=timeout, share_service_client=share_service_client)
         if share_service_client is None:
 
-            self.share_service_client = self._create_share_service_client(share_name=share_name)
+            self.share_service_client = self._create_share_service_client()
             status = self.share_service_client.create_share(**arguments)
 
             return status
@@ -212,22 +223,24 @@ class FileShareFunctions:
         Returns:
             bool: True if directory is deleted, False otherwise
         """
+        directory_client = self._get_directory_client(share_name, directory_name)
+        directory_client.delete_directory()
 
-        status = self.file_service.delete_directory(share_name, directory_name, fail_not_exist, timeout)
+        return True
 
-        return status
-
-    def delete_file(self, share_name, directory_name, file_name, timeout=20):
+    def delete_file(self, share_name, file_name):
         """Marks the specified file for deletion. The file is later deleted during garbage collection.
 
         Args:
             share_name (str): Name of existing share
             directory_name (str): The path to the directory.
-            file_name (str): Name of existing file.
+            file_name (str): Name of existing file and path.
             timeout (int, optional): expressed in seconds. Defaults to 20.
         """
+        share_file_client = self._get_share_file_client(share_name, file_name)
+        share_file_client.delete_file()
 
-        self.file_service.delete_file(share_name, directory_name, file_name, timeout)
+        return True
 
     def delete_share(self, share_name, timeout=10, delete_snapshots=None, share_service_client=None):
         """Marks the specified share for deletion. If the share does not exist, the operation fails on the service
@@ -247,7 +260,7 @@ class FileShareFunctions:
         """
         if share_service_client is None:
 
-            share_service_client = self._create_share_service_client(share_name=share_name)
+            share_service_client = self._create_share_service_client()
             self.share_service_client.delete_share(share_name, timeout=timeout, delete_snapshots=delete_snapshots)
 
             return True
@@ -258,69 +271,66 @@ class FileShareFunctions:
 
             return True
 
-    def exists(self, share_name, directory_name=None, file_name=None, timeout=20, snapshot=None):
-        """Returns a boolean indicating whether the share exists if only share name is given
-        If directory_name is specificed a boolean will be returned indicating if the directory exists.
-        If file_name is specified as well, a boolean will be returned indicating if the file exists.
-
-        Args:
-            share_name (str): Name of a share.
-            directory_name (str, optional): The path to a directory. Defaults to None.
-            file_name (str, optional): Name of a file. Defaults to None.
-            timeout (str, optional): Expressed in seconds. Defaults to None.
-            snapshot (str, optional): A string that represents the snapshot version, if applicable. Defaults to None.
-
-        Returns:
-            bool: A boolean indicating whether the resource exists
-        """
-
-        exists = self.file_service.exists(share_name, directory_name, file_name, timeout, snapshot)
-
-        return exists
-
-    def list_directories_and_files(self, share_name, directory_name=None, num_results=5000,
-                                   marker=None, timeout=10, prefix=None, snapshot=None):
+    def list_directories_and_files(self, share_name, directory_name="", name_starts_with="", timeout=10):
         """Returns a generator to list the directories and files under the specified share.
         The generator will lazily follow the continuation tokens returned by the service and stop when all directories
         and files have been returned or num_results is reached.
 
-        If num_results is specified and the share has more than that number of files and directories,
-        the generator will have a populated next_marker field once it finishes.
-        This marker can be used to create a new generator if more results are desired.
-
         Args:
             share_name (str): Name of existing share.
-            directory_name (str, optional): The path to the directory. Defaults to None.
-            num_results (int, optional): Specifies the maximum number of files to return, including all directory elements. Defaults to 5000.
-            marker (str, optional): An opaque continuation token. This value can be retrieved from the next_marker field of a previous generator objec. Defaults to None.
+            directory_name (str, optional): The path to the directory. Defaults to "".
             timeout (int, optional): expressed in seconds. Defaults to 10.
-            prefix (str, optional): list only the files and/or directories with the given prefix. Defaults to None.
-            snapshot (str, optional): A string that represents the snapshot version, if applicable. Defaults to None.
+            name_starts_with (str, optional): list only the files and/or directories with the given prefix. Defaults to None.
 
         Returns:
             Generator
         """
 
-        list_of_directories_and_files = self.file_service.list_directories_and_files(share_name, directory_name, num_results, marker, timeout, prefix, snapshot)
+        share_client = self._get_share_client(share_name)
+
+        list_of_directories_and_files = share_client.list_directories_and_files(directory_name=directory_name, name_starts_with=name_starts_with)
 
         return list_of_directories_and_files
 
-    def list_shares(self, prefix=None, marker=None, num_results=None, include_metadata=False, timeout=20, include_snapshots=False):
-        """Returns a generator to list the shares under the specified account. The generator will lazily follow the continuation tokens returned by the service
-        and stop when all shares have been returned or num_results is reached.
+    def list_shares(self, name_starts_with="", include_metadata=False, include_snapshots=False, timeout=10):
+        """
+        Returns list of shares in storage account
 
         Args:
-            prefix (str, optional): Filters the results to return only shares whose names begin with the specified prefix. Defaults to None.
-            marker (str, optional): An opaque continuation token. This value can be retrieved from the next_marker field of a previous generator object. Defaults to None.
-            num_results (int, optional): Specifies the maximum number of shares to return. Defaults to None.
-            include_metadata (bool, optional): Specifies that share metadata be returned in the response. Defaults to False.
-            timeout (int, optional): expressed in seconds. Defaults to 20.
-            include_snapshots (bool, optional): Specifies that share snapshots be returned in the response. Defaults to False.
+            name_starts_with (str, optional): Filters the results to return only shares whose names begin with the specified name_starts_with.
+            include_metadata (bool, optional): Specifies that share metadata be returned in the response. Defaults to ""
+            include_snapshots (bool, optional): Specifies that share snapshot be returned in the response. Defaults to False
+            include_deleted (bool, optional): Specifies that deleted shares be returned in the response. This is only for share soft delete enabled account. Defaults to False
+            timeout (int, optional): Timeout in seconds, defaults to 10
 
         Returns:
-            [type]: [description]
+            List
         """
 
-        share_list = self.file_service.list_shares(prefix, marker, num_results, include_metadata, timeout, include_snapshots)
+        share_service_client = self._create_share_service_client()
+        shares = share_service_client.list_shares()
+        share_list = list(shares)
 
         return share_list
+
+    def upload_file(self, share_name, directory_path, file_name, data, metadata=None, length=None, max_concurrency=None):
+        """
+        Uploads a file to a file share
+        https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.sharedirectoryclient?view=azure-python#upload-file-file-name--data--length-none----kwargs-
+
+        Args:
+            share_name (str): Name of the share to upload data to
+            directory_path (str): Path on file share to store data
+            file_name (str): Target file name
+            data (str): Source of data
+            metadata (dict, optional): Name-value pairs associated with the file as metadata.
+            length (int, optional): Length of file in bytes (up to 1Tb)
+
+        Returns:
+            ShareFileClient class obj 
+
+        """
+        share_directory_client = self._get_directory_client(share_name, directory_path)
+        share_file_client = share_directory_client.upload_file(file_name=file_name, data=data, metadata=metadata, length=length)
+
+        return share_file_client
