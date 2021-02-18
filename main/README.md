@@ -84,19 +84,51 @@ Lists all blobs in a specified container. Returns a list
 
 The FileShareFunctions class must be initiated as above (see authentication section). After that the following methods may be called:
 
-- create_fileshare_directory(storage_account_name, file_share_name, directory_path)
+- create_fileshare_directory(share_name, directory_path)
 
-Creates a directory in chosen file share. Returns status
+Creates a directory in chosen file share. Returns Directory-updated property dict (Etag and last modified).
 
-- copy_file(dest_share, directory_name, file_name, copy_source)
+- copy_file(share_name, file_path, source_url)
 
-Copies a file from blob or other file share to a specified share machine. On completion returns a CopyProperties object
+Copies a file from blob or other file share to a specified share machine. On completion returns a [FileProperties](https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.fileproperties?view=azure-python) object
 
-- create_file_from_byters(share_name, directory_name, file_name, file)
+- create_share(share_name, metadata=None, quota=1, timeout=10, share_service_client=None)
 
-Creates a new file from an array of bytes, or updates the content of an existing file, with automatic chunking and progress notifications.
+- delete_directory(share_name, directory_name)
 
+Deletes the specified empty directory. Note that the directory must be empty before it can be deleted. Attempting to delete directories that are not empty will fail.
 
+- delete_file(share_name, file_name)
+
+Marks the specified file for deletion. The file is later deleted during garbage collection.
+
+- list_directories_and_files(self, share_name, directory_name, name_starts_with, timeout)
+
+Returns a generator to list the directories and files under the specified share.
+
+- list_shares(name_starts_with, include_metadata, include_snapshots, timeout)
+
+Returns list of shares in storage account
+
+- upload_file(share_name, directory_path, file_name, data, metadata, length, max_concurrency)
+
+Uploads a file to a file share
+
+If there are other operations that are unsupported by this wrapper then you can generate the following clients:
+
+1. [create_share_service_client()](https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.shareserviceclient?view=azure-python)
+
+This method will allow access to any of the the ShareServiceClient class methods
+
+2. [create_share_directory_client(share_name, directory)](https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.sharedirectoryclient?view=azure-python)
+
+This method will allow access to any of the the ShareDirectoryClient class methods
+
+3. [create_share_client(share_name)](https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.shareclient?view=azure-python)
+
+This method will allow access to any of the the ShareClient class methods
+
+4. [create_share_file_client(share_name, file_path)](https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.sharefileclient?view=azure-python)
 
 ## Queue
 
