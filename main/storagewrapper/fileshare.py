@@ -1,18 +1,16 @@
 from azure.keyvault.secrets import SecretClient
-from azure.storage.file import FileService
 from azure.storage.fileshare import generate_account_sas, ResourceTypes, AccountSasPermissions, ShareServiceClient, ShareClient, ShareDirectoryClient
 from datetime import datetime, timedelta
 
 
 class FileShareFunctions:
 
-    def __init__(self, token, storage_account_name, sas_duration=1, vault_url=None, secret_name=None, file_service_client=None):
+    def __init__(self, token, storage_account_name, sas_duration=1, vault_url=None, secret_name=None):
         self.token = token
         self.vault_url = vault_url
         self.secret_name = secret_name
         self.sas_duration = sas_duration
         self.storage_account_name = storage_account_name
-        self.file_service = self._create_file_service()
 
     def _create_sas_for_fileshare(self):
         """
@@ -31,17 +29,6 @@ class FileShareFunctions:
         )
 
         return fs_sas_token
-
-    def _create_file_service(self):
-        """
-        creates file service object
-        """
-
-        fs_sas_token = self._create_sas_for_fileshare()
-
-        file_service = FileService(account_name=self.storage_account_name, sas_token=fs_sas_token)
-
-        return file_service
 
     def _create_share_service_client(self):
 
@@ -103,66 +90,27 @@ class FileShareFunctions:
 
         return status
 
-    def copy_file(self, dest_share, directory_name, file_name, copy_source, metadata=None, timeout=20):
+    def copy_file(self, share_name, file_path, source_url):
         """
-
+        Copies a file from a url to file share destination
+        
         Args:
-            dest_share (str): share must exist
-            directory_name (str): directory must exis
-            file_name (str): If the destination file exists, it will be overwritten. Otherwise, it will be created
-            copy_source (str): A URL of up to 2 KB in length that specifies an Azure file or blob
-            metadata (dict, optional): Name-value pairs associated with the file as metadata
-            timeout (int, optional): expressed in seconds. Defaults to 20.
+            share_name (str): share must exist
+            file_path (str): full file path
+            source_url (str): source url of file to be copied. May need to authenticate url with sas if in azure storage
 
         Returns:
-            CopyProperties: Copy operation properties such as status, source, and ID
+            FileProperties Class Obj
+            https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.fileproperties?view=azure-python
         """
 
-        copy_properties = self.file_service.copy_file(share_name=dest_share, directory_name=directory_name,
-                                                      file_name=file_name, copy_source=copy_source, metadata=metadata, timeout=timeout)
+        share_file_client = self._get_share_file_client(share_name, file_path)
 
-        return copy_properties
+        share_file_client.start_copy_from_url(source_url)
 
-    def create_file_from_bytes(self, share_name, directory_name, file_name, file,
-                               index=0, count=None, content_settings=None, metadata=None,
-                               validate_content=False, progress_callback=None, max_connections=2,
-                               file_permission=None, smb_properties=None, timeout=30):
-        """Creates a new file from an array of bytes, or updates the content of an existing file, with automatic chunking and progress notifications.
+        file_properties = share_file_client.get_file_properties(timeout=10)
 
-        Args:
-
-            share_name (str): Name of existing share
-
-            directory_name (str): The path to the directory.
-
-            file_name (str): Name of file to create or update.
-
-            file (str): Content of file as an array of bytes.
-
-            index (int, optional): Start index in the array of bytes. Defaults to 0.
-
-            count (int, optional): Number of bytes to upload. Set to None or negative value to upload all bytes starting from index. Defaults to None.
-
-            content_settings (ContentSettings obj, optional): ContentSettings object used to set file properties. Defaults to None.
-
-            metadata (dict, optional): Name-value pairs associated with the file as metadata. Defaults to None.
-
-            validate_content (bool, optional): If true, calculates an MD5 hash for each range of the file. Defaults to False.
-
-            progress_callback ([type], optional): Callback for progress with signature function(current, total). Defaults to None.
-
-            max_connections (int, optional): Maximum number of parallel connections to use. Defaults to 2.
-
-            file_permission (str, optional): File permission, a portable SDDL. Defaults to None.
-
-            smb_properties (SMbProperties obj, optional): Sets the SMB related file properties. Defaults to None.
-
-            timeout (int, optional):  expressed in seconds. Defaults to 30.
-        """
-
-        self.file_service.create_file_from_bytes(share_name, directory_name, file_name, file,
-                                                 index, count, content_settings, metadata, validate_content, progress_callback,
-                                                 max_connections, file_permission, smb_properties, timeout)
+        return file_properties
 
     def __filter_vars(self, **kwargs):
         arguments = {}
@@ -206,9 +154,6 @@ class FileShareFunctions:
             status = self.share_service_client.create_share(**arguments)
 
             return status
-
-    # def create_file(self):
-    #     ShareFileClient(account_url=, share_name=)
 
     def delete_directory(self, share_name, directory_name, fail_not_exist=False, timeout=20):
         """Deletes the specified empty directory. Note that the directory must be empty before it can be deleted.
