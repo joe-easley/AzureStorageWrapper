@@ -4,16 +4,13 @@ from datetime import datetime, timedelta
 
 
 class FileShareFunctions:
-
-    def __init__(self, storage_account_name, sas_duration=1, storage_account_access_key=None, vault_url=None, secret_name=None, token=None):
-        """
+    """
         Initialiser for FileShareFunctions class obj
 
         For authentication requirements to be met one of the following two configurations must be provided
 
         1. A Storage Account Access Key is provided during initialisation
-        2. A token credential from AuthenticateFunctions, along with a key vault url and secret name. The storage account
-        access key must be stored as a secret in this key vault
+        2. A token credential from AuthenticateFunctions, along with a key vault url and secret name. The storage account access key must be stored as a secret in this key vault
 
         Args:
             storage_account_name (str): Name of the storage account
@@ -22,7 +19,10 @@ class FileShareFunctions:
             vault_url (str, optional): URL of key vault in which account access key is stored
             secret_name (str, optional): Name of the access key secret which is stored in key vault
             token(token obj, optional): Credential created in AuthenticateFunctions
-        """
+    """
+
+    def __init__(self, storage_account_name, sas_duration=1, storage_account_access_key=None, vault_url=None, secret_name=None, token=None):
+        
         
         self.storage_account_name = storage_account_name
         self.sas_duration = sas_duration

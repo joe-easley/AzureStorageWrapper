@@ -44,16 +44,7 @@ You can use a service principal to authenticate access. You can do this by assig
 The token is stored as an instance variable so could be stored as: 
     token = AuthenticateFunctions(params).token
 
-Further authentication is required for using the FileShareFunctions. FileShareFunctions uses an account key to generate an account sas token. This library requires this account key to be stored as a secret in key vault. 
-
-Therefore to retrieve this secret the FileShareFunctions class must be initiated with a token from the AuthenticateFunctions class as above, but also with a dictionary containing vault_url and secret_name.
-
-Example:
-
-    fileshare_params = {"vault_url": "vault.url.com",
-                        "secret_name": "sshh top secret"}
-
-    FileShareFunctions(token, fileshare_params)   
+Further authentication is required for using the FileShareFunctions. FileShareFunctions uses an account key to generate an account sas token. This library requires this account key to either be given as an argument during instantiation, or vault url and secret name given so that this secret can be retrieved. More information below.
 
 
 # Supported storage functions
