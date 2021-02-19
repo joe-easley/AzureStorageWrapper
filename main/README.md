@@ -149,6 +149,8 @@ This method will allow access to any of the the ShareClient class methods
 
 - [create_share_file_client(share_name, file_path)](https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.sharefileclient?view=azure-python)
 
+This method will allow access to any of the the ShareFileClient class methods
+
 ## Queue
 
 Queue operations use the QueueFunctions class. This can be instantiated by at a minimum passing an authentication token and storage account name. 
