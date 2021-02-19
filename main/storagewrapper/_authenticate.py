@@ -1,5 +1,6 @@
 from azure.identity import ClientSecretCredential, UsernamePasswordCredential
 from azure.keyvault.secrets import SecretClient
+from storagewrapper._exceptions import AuthenticationError
 
 
 class AuthenticateFunctions:
@@ -24,12 +25,14 @@ class AuthenticateFunctions:
               "storage_account_app_id": "aadappreg123",
               "storage_account_app_key": "XXXXXX"}
 
-    args
+    args:
+        params (dict): dictionary of params used to authenticate
+
     """
 
     def __init__(self, params):
         self.params = params
-        self.token = self._generate_credential()
+        self.token = self.__generate_credential()
 
     def __generate_client_secret_credential(self, tenant_id, storage_account_id, storage_account_key):
         """
@@ -72,12 +75,9 @@ class AuthenticateFunctions:
 
         return token_credential
 
-    def _generate_credential(self):
+    def __generate_credential(self):
         """
         Will generate credential based on authentication_method selected
-
-        param authentication_method: str
-        param: kwargs
 
         return token_crential: Azure credential obj
         """
@@ -105,4 +105,4 @@ class AuthenticateFunctions:
             return token_credential
 
         else:
-            raise Exception(f"Authentication method given invalid: {authentication_method}. Must be 'user' or 'client_secret'.")
+            raise AuthenticationError(f"Authentication method given invalid: {authentication_method}. Must be 'user' or 'client_secret'.")

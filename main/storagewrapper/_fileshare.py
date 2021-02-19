@@ -1,6 +1,9 @@
 from azure.keyvault.secrets import SecretClient
 from azure.storage.fileshare import generate_account_sas, ResourceTypes, AccountSasPermissions, ShareServiceClient, ShareClient, ShareDirectoryClient
 from datetime import datetime, timedelta
+from storagewrapper._exceptions import FileShareFunctionsError
+import sys
+
 
 
 class FileShareFunctions:
@@ -21,16 +24,26 @@ class FileShareFunctions:
             token(token obj, optional): Credential created in AuthenticateFunctions
     """
 
-    def __init__(self, storage_account_name, sas_duration=1, storage_account_access_key=None, vault_url=None, secret_name=None, token=None):
-        
-        
+    def __init__(self, storage_account_name, sas_duration=1, storage_account_access_key=None, vault_url=None, secret_name=None, token=None, handle_exceptions=False):
         self.storage_account_name = storage_account_name
         self.sas_duration = sas_duration
         self.storage_account_access_key = storage_account_access_key
         self.vault_url = vault_url
         self.secret_name = secret_name
         self.token = token
+        self.handle_exceptions = handle_exceptions
         
+    def __str__(self):
+        return f"Functions for operating fileshare storage within storage account:'{self.storage_account_name}'"
+
+    def __handle_errors(self, func_name, error):
+        if self.handle_exceptions:
+
+            return False
+        
+        elif not self.handle_exceptions:
+
+            raise FileShareFunctionsError(f"Failed to execute {func_name} with error {error}")
 
     def _create_sas_for_fileshare(self):
         """
@@ -64,7 +77,7 @@ class FileShareFunctions:
             return fs_sas_token
 
     def _create_share_service_client(self):
-
+        
         sas_token = self._create_sas_for_fileshare()
         account_url = f"https://{self.storage_account_name}.file.core.windows.net/"
         share_service_client = ShareServiceClient(account_url=account_url, credential=sas_token)
@@ -125,12 +138,16 @@ class FileShareFunctions:
         Returns:
             Directory-updated property dict (Etag and last modified).
         """
+        try: 
+            share_directory_client = self._get_directory_client(share_name, directory_path)
 
-        share_directory_client = self._get_directory_client(share_name, directory_path)
+            status = share_directory_client.create_directory()
 
-        status = share_directory_client.create_directory()
+            return status
 
-        return status
+        except Exception as e:
+            
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
 
     def copy_file(self, share_name, file_path, source_url):
         """
@@ -145,48 +162,40 @@ class FileShareFunctions:
             FileProperties Class Obj
             https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.fileproperties?view=azure-python
         """
+        try:
+            share_file_client = self._get_share_file_client(share_name, file_path)
 
-        share_file_client = self._get_share_file_client(share_name, file_path)
+            share_file_client.start_copy_from_url(source_url)
 
-        share_file_client.start_copy_from_url(source_url)
+            file_properties = share_file_client.get_file_properties(timeout=10)
 
-        file_properties = share_file_client.get_file_properties(timeout=10)
+            return file_properties
+        
+        except Exception as e:
+            
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
 
-        return file_properties
-
-    def create_share(self, share_name, metadata=None, quota=1, timeout=10, share_service_client=None):
-        """Creates a new share in storage_account. If the share with the same name already exists,
-        the operation fails on the service. By default, the exception is swallowed by the client unless exposed with fail_on_exist
+    def create_share(self, share_name, quota=1073741824, metadata=None, timeout=10):
+        """
+        Creates a file share within the initiated storage account
 
         Args:
-
-            share_name (str): Name of share to create
-
-            metadata (dict, optional): A dict with name_value pairs to associate with the share as metadata. Defaults to None.
-
-            quota (int, optional): Specifies the maximum size of the share, in gigabytes. Must be greater than 0, and less than or equal to 5TB (5120). Defaults to 1.
-
-            timeout (int, optional): expressed in seconds. Defaults to 10.
-
-            share_service_client (ShareServiceClient obj, optional): If share service client exists can be used here, otherwise a new one is generated. Defaults to None.
-
-        Returns:
-            True if share is created, False if already exists
+            share_name (str): Name of share to be created
+            quota (int, optional): Volume of file share being created in bytes. Defaults to 1073741824 (1Gb)
+            metadata (dict, optional): A dict with name_value pairs to associate with the share as metadata. Example:{'Category':'test'}
+            timeout (int, optional): server timeout expressed in seconds. Defaults to 10
         """
 
-        arguments = self.__filter_vars(share_name=share_name, metadata=metadata, quota=quota, timeout=timeout, share_service_client=share_service_client)
-        if share_service_client is None:
+        try:
+            share_service_client = self._create_share_service_client()
 
-            self.share_service_client = self._create_share_service_client()
-            status = self.share_service_client.create_share(**arguments)
+            share_client = share_service_client.create_share(share_name=share_name, quota=quota, metadata=metadata, timeout=timeout)
 
-            return status
-
-        else:
-
-            status = self.share_service_client.create_share(**arguments)
-
-            return status
+            return share_client
+        
+        except Exception as e:
+            
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
 
     def delete_directory(self, share_name, directory_name):
         """Deletes the specified empty directory. Note that the directory must be empty before it can be deleted.
@@ -201,10 +210,17 @@ class FileShareFunctions:
         Returns:
             bool: True if directory is deleted, False otherwise
         """
-        directory_client = self._get_directory_client(share_name, directory_name)
-        directory_client.delete_directory()
 
-        return True
+        try: 
+
+            directory_client = self._get_directory_client(share_name, directory_name)
+            directory_client.delete_directory()
+
+            return True
+
+        except Exception as e:
+            
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
 
     def delete_file(self, share_name, file_name):
         """Marks the specified file for deletion. The file is later deleted during garbage collection.
@@ -215,12 +231,19 @@ class FileShareFunctions:
             file_name (str): Name of existing file and path.
             timeout (int, optional): expressed in seconds. Defaults to 20.
         """
-        share_file_client = self._get_share_file_client(share_name, file_name)
-        share_file_client.delete_file()
 
-        return True
+        try:
 
-    def delete_share(self, share_name, timeout=10, delete_snapshots=None, share_service_client=None):
+            share_file_client = self._get_share_file_client(share_name, file_name)
+            share_file_client.delete_file()
+
+            return True
+
+        except Exception as e:
+            
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
+
+    def delete_share(self, share_name, timeout=10, delete_snapshots=None):
         """Marks the specified share for deletion. If the share does not exist, the operation fails on the service
 
         Args:
@@ -231,23 +254,19 @@ class FileShareFunctions:
 
             delete_snapshots (DeleteSnapshot, optional): To delete a share that has snapshots, this must be specified as DeleteSnapshot.Include. Defaults to None.
 
-            share_service_client (ShareServiceClient obj, optional): If share service client exists can be used here, otherwise a new one is generated. Defaults to None.
-
         Returns:
             bool: True if share is deleted, False share doesn't exist.
         """
-        if share_service_client is None:
+        try:
 
             share_service_client = self._create_share_service_client()
-            self.share_service_client.delete_share(share_name, timeout=timeout, delete_snapshots=delete_snapshots)
+            share_service_client.delete_share(share_name, timeout=timeout, delete_snapshots=delete_snapshots)
 
             return True
-
-        else:
-
-            self.share_service_client.delete_share(share_name, timeout=timeout, delete_snapshots=delete_snapshots)
-
-            return True
+        
+        except Exception as e:
+            
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
 
     def list_directories_and_files(self, share_name, directory_name="", name_starts_with="", timeout=10):
         """Returns a generator to list the directories and files under the specified share.
@@ -263,12 +282,16 @@ class FileShareFunctions:
         Returns:
             Generator
         """
+        try: 
+            share_client = self._get_share_client(share_name)
 
-        share_client = self._get_share_client(share_name)
+            list_of_directories_and_files = share_client.list_directories_and_files(directory_name=directory_name, name_starts_with=name_starts_with)
 
-        list_of_directories_and_files = share_client.list_directories_and_files(directory_name=directory_name, name_starts_with=name_starts_with)
+            return list_of_directories_and_files
 
-        return list_of_directories_and_files
+        except Exception as e:
+            
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
 
     def list_shares(self, name_starts_with="", include_metadata=False, include_snapshots=False, timeout=10):
         """
@@ -284,12 +307,17 @@ class FileShareFunctions:
         Returns:
             List
         """
+        try:
 
-        share_service_client = self._create_share_service_client()
-        shares = share_service_client.list_shares()
-        share_list = list(shares)
+            share_service_client = self._create_share_service_client()
+            shares = share_service_client.list_shares()
+            share_list = list(shares)
 
-        return share_list
+            return share_list
+
+        except Exception as e:
+            
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
 
     def upload_file(self, share_name, directory_path, file_name, data, metadata=None, length=None, max_concurrency=None):
         """
@@ -308,10 +336,17 @@ class FileShareFunctions:
             ShareFileClient class obj 
 
         """
-        share_directory_client = self._get_directory_client(share_name, directory_path)
-        share_file_client = share_directory_client.upload_file(file_name=file_name, data=data, metadata=metadata, length=length)
 
-        return share_file_client
+        try:
+
+            share_directory_client = self._get_directory_client(share_name, directory_path)
+            share_file_client = share_directory_client.upload_file(file_name=file_name, data=data, metadata=metadata, length=length)
+
+            return share_file_client
+
+        except Exception as e:
+            
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
 
     def create_share_service_client(self):
         """
@@ -321,8 +356,15 @@ class FileShareFunctions:
                 ShareServiceClient class obj
                 https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.shareserviceclient?view=azure-python
         """
-        share_service_client = self._create_share_service_client()
-        return share_service_client
+
+        try:
+
+            share_service_client = self._create_share_service_client()
+            return share_service_client
+
+        except Exception as e:
+            
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
 
     def create_share_client(self, share_name):
         """
@@ -336,10 +378,14 @@ class FileShareFunctions:
                 ShareDirectoryClient class obj
                 https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.shareclient?view=azure-python
         """
+        try:
+            share_client = self._get_share_client(share_name)
 
-        share_client = self._get_share_client(share_name)
+            return share_client
 
-        return share_client
+        except Exception as e:
+            
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
 
     def create_share_directory_client(self, share_name, directory):
         """
@@ -353,10 +399,14 @@ class FileShareFunctions:
                 ShareDirectoryClient class obj
                 https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.sharedirectoryclient?view=azure-python
         """
+        try: 
+            share_directory_client = self._get_directory_client(share_name, directory)
 
-        share_directory_client = self._get_directory_client(share_name, directory)
+            return share_directory_client
 
-        return share_directory_client
+        except Exception as e:
+            
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
 
     def create_share_file_client(self, share_name, file_path):
         """
@@ -370,7 +420,12 @@ class FileShareFunctions:
                 ShareFileClient class obj
                 https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.sharefileclient?view=azure-python
         """
+        try:
 
-        share_file_client = self._get_share_file_client(share_name, file_path)
+            share_file_client = self._get_share_file_client(share_name, file_path)
 
-        return share_file_client
+            return share_file_client
+
+        except Exception as e:
+            
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
