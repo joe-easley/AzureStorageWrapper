@@ -347,7 +347,7 @@ class BlobFunctions:
 
             blob_service_client = self.__create_blob_service_client()
 
-            retrieved_containers = blob_service_client.list_containers(name_starts_with=name_starts_with, include_metadata=include_metadata, 
+            retrieved_containers = blob_service_client.list_containers(name_starts_with=name_starts_with, include_metadata=include_metadata,
                                                                        include_deleted=include_deleted, results_per_page=results_per_page, timeout=timeout)
             return retrieved_containers
 

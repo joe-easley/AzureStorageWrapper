@@ -11,9 +11,9 @@ class AuthenticateFunctions:
 
     In both instances a credential dictionary will need to passed at instantiation
 
-    If authenticating as a user it will look something like: 
+    If authenticating as a user it will look something like:
     
-    params = {"authentication_method": "user", 
+    params = {"authentication_method": "user",
               "client_id": "XXXX",
               "username": "username@website.com",
               "password": "Wouldn'tYouLikeToKnow"}

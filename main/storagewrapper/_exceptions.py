@@ -1,6 +1,6 @@
 class AuthenticationError(Exception):
     """
-    Exceptions raised in Authentication 
+    Exceptions raised in Authentication
     """
 
     def __init__(self, message):
@@ -39,6 +39,7 @@ class BlobFunctionsError(Exception):
 
     def __str__(self):
         return self.message
+
 
 class InitialisationError(Exception):
     

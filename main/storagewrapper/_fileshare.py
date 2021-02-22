@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from storagewrapper._exceptions import FileShareFunctionsError, InitialisationError
 import sys
 
+
 class FileShareFunctions:
     """
         Initialiser for FileShareFunctions class obj
