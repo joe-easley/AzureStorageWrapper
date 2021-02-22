@@ -1,7 +1,7 @@
 from azure.keyvault.secrets import SecretClient
-from azure.storage.fileshare import generate_account_sas, ResourceTypes, AccountSasPermissions, ShareServiceClient, ShareClient, ShareDirectoryClient
+from azure.storage.fileshare import generate_account_sas, ResourceTypes, AccountSasPermissions, ShareServiceClient, ShareClient, ShareDirectoryClient, ShareAccessTier
 from datetime import datetime, timedelta
-from storagewrapper._exceptions import FileShareFunctionsError
+from storagewrapper._exceptions import FileShareFunctionsError, InitialisationError
 import sys
 
 
@@ -36,14 +36,27 @@ class FileShareFunctions:
     def __str__(self):
         return f"Functions for operating fileshare storage within storage account:'{self.storage_account_name}'"
 
-    def __handle_errors(self, func_name, error):
+    def __handle_errors(self, func_name, error, exception_type=None):
+
+        error_message = f"{error} in {func_name}"
+
         if self.handle_exceptions:
 
             return False
         
         elif not self.handle_exceptions:
 
-            raise FileShareFunctionsError(f"Failed to execute {func_name} with error {error}")
+            self.__raise_exceptions(message=error_message, exception_type=exception_type)
+
+    def __raise_exceptions(self, message, exception_type):
+
+        if exception_type is None:
+
+            raise FileShareFunctionsError(message)
+
+        else:
+            raise exception_type(message)
+
 
     def _create_sas_for_fileshare(self):
         """
@@ -58,7 +71,7 @@ class FileShareFunctions:
                 account_name=self.storage_account_name,
                 account_key=secret,
                 resource_types=ResourceTypes(service=True, container=True, object=True),
-                permission=AccountSasPermissions(read=True, write=True),
+                permission=AccountSasPermissions(read=True, write=True, create=True),
                 expiry=datetime.utcnow() + timedelta(hours=self.sas_duration)
             )
 
@@ -70,7 +83,7 @@ class FileShareFunctions:
                 account_name=self.storage_account_name,
                 account_key=self.storage_account_access_key,
                 resource_types=ResourceTypes(service=True, container=True, object=True),
-                permission=AccountSasPermissions(read=True, write=True),
+                permission=AccountSasPermissions(read=True, write=True, create=True, list=True),
                 expiry=datetime.utcnow() + timedelta(hours=self.sas_duration)
             )
 
@@ -85,8 +98,8 @@ class FileShareFunctions:
         return share_service_client
 
     def _get_share_client(self, share_name):
-        share_service_client = self._create_share_service_client()
-        share_client = share_service_client.get_share_client(share=share_name)
+        fs_sas = self._create_sas_for_fileshare()
+        share_client = ShareClient(account_url=self.storage_account_name, share_name=share_name, credential=fs_sas)
 
         return share_client
 
@@ -111,11 +124,20 @@ class FileShareFunctions:
 
         return secret
         """
-        vault_url = self.vault_url
-        secret_name = self.secret_name
+        if self.vault_url is None:
 
-        secret_client = SecretClient(vault_url=vault_url, credential=self.token)
-        secret = secret_client.get_secret(secret_name)
+            self.__handle_errors("init", error="vault_url not initialised", exception_type=InitialisationError)
+
+        if self.secret_name is None:
+
+            self.__handle_errors("init", error="secret_name not initialised", exception_type=InitialisationError)
+
+        if self.token is None:
+            
+            self.__handle_errors("Retrieving secret", error="token not provided", exception_type=InitialisationError)
+
+        secret_client = SecretClient(vault_url=self.vault_url, credential=self.token)
+        secret = secret_client.get_secret(self.secret_name)
 
         return secret.value
 
@@ -179,21 +201,22 @@ class FileShareFunctions:
 
             return status
 
-    def create_share(self, share_name, quota=1073741824, metadata=None, timeout=10):
+    def create_share(self, share_name, quota=1073741824, access_tier="Hot", metadata=None, timeout=10):
         """
         Creates a file share within the initiated storage account
 
         Args:
             share_name (str): Name of share to be created
             quota (int, optional): Volume of file share being created in bytes. Defaults to 1073741824 (1Gb)
-            metadata (dict, optional): A dict with name_value pairs to associate with the share as metadata. Example:{'Category':'test'}
+            access_tier (str, optional): Either "Hot", "TransactionOptimized" or "Cool". Defaults to Hot.
+            metadata (dict, optional): Name-value pairs associated with the share as metadata. Defaults to None
             timeout (int, optional): server timeout expressed in seconds. Defaults to 10
         """
 
         try:
-            share_service_client = self._create_share_service_client()
+            share_client = self._get_share_client(share_name=share_name)
 
-            share_client = share_service_client.create_share(share_name=share_name, quota=quota, metadata=metadata, timeout=timeout)
+            share_client = share_client.create_share(quota=quota, access_tier=ShareAccessTier(access_tier), timeout=timeout, metadata=metadata)
 
             return share_client
         

@@ -31,8 +31,7 @@ jobs:
         cd "/home/runner/work/AzureStorageWrapper/AzureStorageWrapper/main"
         echo $PWD
         ls -d */
-        pip install .
-        pip install -r requirements.txt
+        pip install storagewrapper
 
     - name: Run Blob behave tests
       run: |

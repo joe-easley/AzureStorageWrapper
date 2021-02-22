@@ -28,8 +28,8 @@ def generate_credential(context, authentication_method):
     assert context.token is not None
 
 
-@given("BlobFunctions has been instantiated with all permissions and {container} name")
-def instantiate_blob_functions(context, container):
+@given("BlobFunctions has been instantiated with all permissions")
+def instantiate_blob_functions(context):
     context.blob_functions = BlobFunctions(token=context.token, storage_account_name=context.storage_account_name)
 
 
@@ -44,7 +44,6 @@ def create_test_container(context, container):
 def upload_file_to_blob(context, container):
     path_to_file = f"{os.getcwd()}/data/{context.blob_name}"
     blob_client = context.blob_functions.upload_blob(blob_name=context.blob_name, data=path_to_file, container_name=container)
-    print(blob_client)
     assert blob_client is not None
 
 
@@ -61,13 +60,12 @@ def list_all_containers(context, container):
 @then("list blobs function is used in {container}")
 def use_list_blobs_function(context, container):
     list_blobs = context.blob_functions.list_blobs(container_name=container)
-    print(list_blobs)
     assert context.blob_name in list_blobs
 
 
-@then("blob is deleted")
-def delete_newly_uploaded_blob(context):
-    blob_deleted = context.blob_functions.delete_blob(context.blob_name)
+@then("blob is deleted from {container}")
+def delete_newly_uploaded_blob(context, container):
+    blob_deleted = context.blob_functions.delete_blob(context.blob_name, container_name=container)
     assert blob_deleted is True
 
 

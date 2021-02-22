@@ -77,7 +77,7 @@ class BlobFunctions:
         csp = self.__define_sas_permissions()
 
         if self.sas_method == "UserDelegationKey":
-            
+
             blob_service_client = self.__create_blob_service_client()
 
             udk = blob_service_client.get_user_delegation_key(key_start_time=datetime.utcnow(),
@@ -253,7 +253,7 @@ class BlobFunctions:
         try:
 
             blob_client = self.__create_blob_client_from_url(blob_name, container_name)
-            blob_client.upload_blob(data=data, blob_type=blob_type, overwrite=overwrite)
+            blob_client = blob_client.upload_blob(data=data, blob_type=blob_type, overwrite=overwrite)
 
             return blob_client
         
