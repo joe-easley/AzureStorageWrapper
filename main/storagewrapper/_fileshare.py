@@ -149,6 +149,8 @@ class FileShareFunctions:
             
             status = self.__handle_errors(sys._getframe().f_code.co_name, e)
 
+            return status
+
     def copy_file(self, share_name, file_path, source_url):
         """
         Copies a file from a url to file share destination
@@ -175,6 +177,8 @@ class FileShareFunctions:
             
             status = self.__handle_errors(sys._getframe().f_code.co_name, e)
 
+            return status
+
     def create_share(self, share_name, quota=1073741824, metadata=None, timeout=10):
         """
         Creates a file share within the initiated storage account
@@ -196,6 +200,8 @@ class FileShareFunctions:
         except Exception as e:
             
             status = self.__handle_errors(sys._getframe().f_code.co_name, e)
+
+            return status
 
     def delete_directory(self, share_name, directory_name):
         """Deletes the specified empty directory. Note that the directory must be empty before it can be deleted.
@@ -222,6 +228,8 @@ class FileShareFunctions:
             
             status = self.__handle_errors(sys._getframe().f_code.co_name, e)
 
+            return status
+
     def delete_file(self, share_name, file_name):
         """Marks the specified file for deletion. The file is later deleted during garbage collection.
 
@@ -242,6 +250,8 @@ class FileShareFunctions:
         except Exception as e:
             
             status = self.__handle_errors(sys._getframe().f_code.co_name, e)
+
+            return status
 
     def delete_share(self, share_name, timeout=10, delete_snapshots=None):
         """Marks the specified share for deletion. If the share does not exist, the operation fails on the service
@@ -268,6 +278,8 @@ class FileShareFunctions:
             
             status = self.__handle_errors(sys._getframe().f_code.co_name, e)
 
+            return status
+
     def list_directories_and_files(self, share_name, directory_name="", name_starts_with="", timeout=10):
         """Returns a generator to list the directories and files under the specified share.
         The generator will lazily follow the continuation tokens returned by the service and stop when all directories
@@ -292,6 +304,8 @@ class FileShareFunctions:
         except Exception as e:
             
             status = self.__handle_errors(sys._getframe().f_code.co_name, e)
+
+            return status
 
     def list_shares(self, name_starts_with="", include_metadata=False, include_snapshots=False, timeout=10):
         """
@@ -318,6 +332,8 @@ class FileShareFunctions:
         except Exception as e:
             
             status = self.__handle_errors(sys._getframe().f_code.co_name, e)
+
+            return status
 
     def upload_file(self, share_name, directory_path, file_name, data, metadata=None, length=None, max_concurrency=None):
         """
@@ -348,6 +364,8 @@ class FileShareFunctions:
             
             status = self.__handle_errors(sys._getframe().f_code.co_name, e)
 
+            return status
+
     def create_share_service_client(self):
         """
         For operations not supported by the storage wrapper this method will create a share service client.
@@ -365,6 +383,8 @@ class FileShareFunctions:
         except Exception as e:
             
             status = self.__handle_errors(sys._getframe().f_code.co_name, e)
+
+            return status
 
     def create_share_client(self, share_name):
         """
@@ -387,6 +407,8 @@ class FileShareFunctions:
             
             status = self.__handle_errors(sys._getframe().f_code.co_name, e)
 
+            return status
+
     def create_share_directory_client(self, share_name, directory):
         """
         For operations not supported by the storage wrapper this method will create a share directory client.
@@ -407,6 +429,8 @@ class FileShareFunctions:
         except Exception as e:
             
             status = self.__handle_errors(sys._getframe().f_code.co_name, e)
+
+            return status
 
     def create_share_file_client(self, share_name, file_path):
         """
@@ -429,3 +453,5 @@ class FileShareFunctions:
         except Exception as e:
             
             status = self.__handle_errors(sys._getframe().f_code.co_name, e)
+
+            return status

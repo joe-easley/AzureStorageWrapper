@@ -1,5 +1,4 @@
-from storagewrapper.fileshare import FileShareFunctions
-from storagewrapper.authenticate import AuthenticateFunctions
+from storagewrapper import FileShareFunctions, AuthenticateFunctions
 from behave import given, when
 # import os
 
