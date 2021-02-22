@@ -10,6 +10,7 @@ class AuthenticationError(Exception):
     def __str__(self):
         return self.message
 
+
 class InvalidArguments(Exception):
 
     def __init__(self, message):
@@ -19,6 +20,7 @@ class InvalidArguments(Exception):
     def __str__(self):
         return self.message
 
+
 class FileShareFunctionsError(Exception):
     
     def __init__(self, message):
@@ -27,6 +29,7 @@ class FileShareFunctionsError(Exception):
 
     def __str__(self):
         return self.message
+
 
 class BlobFunctionsError(Exception):
     

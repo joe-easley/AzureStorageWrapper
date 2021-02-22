@@ -4,8 +4,6 @@ from datetime import datetime, timedelta
 from storagewrapper._exceptions import FileShareFunctionsError, InitialisationError
 import sys
 
-
-
 class FileShareFunctions:
     """
         Initialiser for FileShareFunctions class obj
@@ -56,7 +54,6 @@ class FileShareFunctions:
 
         else:
             raise exception_type(message)
-
 
     def _create_sas_for_fileshare(self):
         """
@@ -160,7 +157,7 @@ class FileShareFunctions:
         Returns:
             Directory-updated property dict (Etag and last modified).
         """
-        try: 
+        try:
             share_directory_client = self._get_directory_client(share_name, directory_path)
 
             status = share_directory_client.create_directory()
@@ -240,7 +237,7 @@ class FileShareFunctions:
             bool: True if directory is deleted, False otherwise
         """
 
-        try: 
+        try:
 
             directory_client = self._get_directory_client(share_name, directory_name)
             directory_client.delete_directory()
@@ -317,7 +314,7 @@ class FileShareFunctions:
         Returns:
             Generator
         """
-        try: 
+        try:
             share_client = self._get_share_client(share_name)
 
             list_of_directories_and_files = share_client.list_directories_and_files(directory_name=directory_name, name_starts_with=name_starts_with)
@@ -372,7 +369,7 @@ class FileShareFunctions:
             length (int, optional): Length of file in bytes (up to 1Tb)
 
         Returns:
-            ShareFileClient class obj 
+            ShareFileClient class obj
 
         """
 
@@ -444,7 +441,7 @@ class FileShareFunctions:
                 ShareDirectoryClient class obj
                 https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.sharedirectoryclient?view=azure-python
         """
-        try: 
+        try:
             share_directory_client = self._get_directory_client(share_name, directory)
 
             return share_directory_client

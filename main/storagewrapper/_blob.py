@@ -81,7 +81,7 @@ class BlobFunctions:
             blob_service_client = self.__create_blob_service_client()
 
             udk = blob_service_client.get_user_delegation_key(key_start_time=datetime.utcnow(),
-                                                                   key_expiry_time=datetime.utcnow() + timedelta(hours=self.sas_duration))
+                                                              key_expiry_time=datetime.utcnow() + timedelta(hours=self.sas_duration))
 
             sas_token = generate_container_sas(
                 account_name=self.storage_account_name,
@@ -183,7 +183,6 @@ class BlobFunctions:
         container_client = blob_service_client.get_container_client(container_name)
 
         return container_client
-
 
     def list_blobs(self, container_name, name_starts_with="", timeout=10):
         """Returns a generator to list the blobs under the specified container
@@ -289,7 +288,6 @@ class BlobFunctions:
 
             return True
 
-        
         except Exception as e:
             
             status = self.__handle_errors(sys._getframe().f_code.co_name, e)
@@ -347,12 +345,10 @@ class BlobFunctions:
         """
         try:
 
-
             blob_service_client = self.__create_blob_service_client()
 
             retrieved_containers = blob_service_client.list_containers(name_starts_with=name_starts_with, include_metadata=include_metadata, 
                                                                        include_deleted=include_deleted, results_per_page=results_per_page, timeout=timeout)
-
             return retrieved_containers
 
         except Exception as e:
