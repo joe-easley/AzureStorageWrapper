@@ -31,7 +31,7 @@ There are currently two ways of authorising access.
 
 1. As a user
 
-If you have access as user to an azure storage resource then you can authenticate as that user by assigning the value "user" to the authentication key in the params dictionary. If using this method you must also add client_id, username and password as key value pairs to the param dictionary.
+If you have access as user to an azure storage resource then you can authenticate as that user by assigning the value "user" to the authentication key in the params dictionary. If using this method you must also add client_id(aka "tenant id"), username and password as key value pairs to the param dictionary.
 
 [For further information see here](https://docs.microsoft.com/en-us/python/api/azure-identity/azure.identity.usernamepasswordcredential?view=azure-python)
 
@@ -44,16 +44,7 @@ You can use a service principal to authenticate access. You can do this by assig
 The token is stored as an instance variable so could be stored as: 
     token = AuthenticateFunctions(params).token
 
-Further authentication is required for using the FileShareFunctions. FileShareFunctions uses an account key to generate an account sas token. This library requires this account key to be stored as a secret in key vault. 
-
-Therefore to retrieve this secret the FileShareFunctions class must be initiated with a token from the AuthenticateFunctions class as above, but also with a dictionary containing vault_url and secret_name.
-
-Example:
-
-    fileshare_params = {"vault_url": "vault.url.com",
-                        "secret_name": "sshh top secret"}
-
-    FileShareFunctions(token, fileshare_params)   
+Further authentication is required for using the FileShareFunctions. FileShareFunctions uses an account key to generate an account sas token. This library requires this account key to either be given as an argument during instantiation, or vault url and secret name given so that this secret can be retrieved. More information below.
 
 
 # Supported storage functions
@@ -84,19 +75,72 @@ Lists all blobs in a specified container. Returns a list
 
 The FileShareFunctions class must be initiated as above (see authentication section). After that the following methods may be called:
 
-- create_fileshare_directory(storage_account_name, file_share_name, directory_path)
+- Create Directory
 
-Creates a directory in chosen file share. Returns status
+    create_fileshare_directory(share_name, directory_path)
 
-- copy_file(dest_share, directory_name, file_name, copy_source)
+Creates a directory in chosen file share. Returns Directory-updated property dict (Etag and last modified).
 
-Copies a file from blob or other file share to a specified share machine. On completion returns a CopyProperties object
+- Copy File
 
-- create_file_from_byters(share_name, directory_name, file_name, file)
+    copy_file(share_name, file_path, source_url)
 
-Creates a new file from an array of bytes, or updates the content of an existing file, with automatic chunking and progress notifications.
+Copies a file from blob or other file share to a specified share machine. On completion returns a [FileProperties](https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.fileproperties?view=azure-python) object
 
+- Create new File Share
 
+    create_share(share_name, metadata=None, quota=1, timeout=10, share_service_client=None)
+
+Creates a new share in storage_account
+
+- Delete directory
+
+    delete_directory(share_name, directory_name)
+
+Deletes the specified empty directory. Note that the directory must be empty before it can be deleted. Attempting to delete directories that are not empty will fail.
+
+- Delete File
+
+    delete_file(share_name, file_name)
+
+Marks the specified file for deletion. The file is later deleted during garbage collection.
+
+- List directories and files on share
+
+    list_directories_and_files(self, share_name, directory_name, name_starts_with, timeout)
+
+Returns a generator to list the directories and files under the specified share.
+
+- List all File Shares
+
+    list_shares(name_starts_with, include_metadata, include_snapshots, timeout)
+
+Returns list of shares in storage account
+
+- Upload file to File Share
+
+    upload_file(share_name, directory_path, file_name, data, metadata, length, max_concurrency)
+
+Uploads a file to a file share
+
+## Currently unsupported FileShare operations
+If there are other fileshare operations that are unsupported by this wrapper then you can generate the following clients to interact with them:
+
+- [create_share_service_client()](https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.shareserviceclient?view=azure-python)
+
+This method will allow access to any of the the ShareServiceClient class methods
+
+- [create_share_directory_client(share_name, directory)](https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.sharedirectoryclient?view=azure-python)
+
+This method will allow access to any of the the ShareDirectoryClient class methods
+
+- [create_share_client(share_name)](https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.shareclient?view=azure-python)
+
+This method will allow access to any of the the ShareClient class methods
+
+- [create_share_file_client(share_name, file_path)](https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.sharefileclient?view=azure-python)
+
+This method will allow access to any of the the ShareFileClient class methods
 
 ## Queue
 

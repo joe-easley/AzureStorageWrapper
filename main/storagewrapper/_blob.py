@@ -32,6 +32,9 @@ class BlobFunctions:
         self.access_key_secret_name = access_key_secret_name
         self.blob_service_client = self._create_blob_service_client()
         self.container_client = self._create_container_client()
+    
+    def __str__(self):
+        return f"Functions for operating blob storage within storage account:'{self.storage_account_name}'"
 
     def _create_blob_sas_token(self):
         """
@@ -180,16 +183,20 @@ class BlobFunctions:
         Returns:
             list: list of all blobs in container
         """
+        try:
+            blobs_in_container = self.container_client.list_blobs()
 
-        blobs_in_container = self.container_client.list_blobs()
+            blobs_list = []
 
-        blobs_list = []
+            for blob in blobs_in_container:
 
-        for blob in blobs_in_container:
+                blobs_list.append(blob.name)
 
-            blobs_list.append(blob.name)
-
-        return blobs_list
+            return blobs_list
+        
+        except Exception as e:
+            
+            return e
 
     def delete_blob(self, blob_name):
         """Deletes a specified blob
@@ -200,10 +207,15 @@ class BlobFunctions:
         Returns:
             True: True is returned if blob successfully deleted
         """
+        try:
+            
+            self.container_client.delete_blob(blob_name, delete_snapshots=None)
 
-        self.container_client.delete_blob(blob_name, delete_snapshots=None)
-
-        return True
+            return True
+        
+        except Exception as e:
+            
+            return e
 
     def upload_blob(self, blob_name, data, overwrite=True, blob_type="BlockBlob"):
         """Creates a new blob from a data source with automatic chunking
@@ -216,11 +228,16 @@ class BlobFunctions:
         Returns:
             BlobClient: a client with which to interact with the uploaded blob
         """
+        try:
 
-        blob_client = self._create_blob_client_from_url(blob_name)
-        blob_client.upload_blob(data=data, blob_type=blob_type, overwrite=overwrite)
+            blob_client = self._create_blob_client_from_url(blob_name)
+            blob_client.upload_blob(data=data, blob_type=blob_type, overwrite=overwrite)
 
-        return blob_client
+            return blob_client
+        
+        except Exception as e:
+            
+            return e
 
     def delete_container(self, container_name, lease=None, if_modified_since=None, if_unmodified_since=None, etag=None, match_condition=None, timeout=20):
         """Deletes a specified container
@@ -240,14 +257,20 @@ class BlobFunctions:
         Raises:
             Exception: If container given does not match instantiated version exception is raised
         """
-        if container_name == self.container_name:
+        try:
 
-            self.container_client.delete_container()
+            if container_name == self.container_name:
 
-            return True
+                self.container_client.delete_container()
 
-        else:
-            raise Exception("Container specified for deletion does not match that instantiated in BlobFunctions class call")
+                return True
+
+            else:
+                raise Exception("Container specified for deletion does not match that instantiated in BlobFunctions class call")
+        
+        except Exception as e:
+            
+            return e
 
     def create_container(self, container_name, metadata=None, public_access=None, **kwargs):
         """Creates a new container under the specified account. If the container with the same name already exists, the operation fails.
@@ -263,19 +286,25 @@ class BlobFunctions:
         Raises:
             Exception: If container given does not match instantiated version exception is raised
         """
-        if container_name == self.container_name:
+        try:
 
-            if metadata is None:
-                self.blob_service_client.create_container(container_name)
+            if container_name == self.container_name:
 
-            elif metadata is not None:
+                if metadata is None:
+                    self.blob_service_client.create_container(container_name)
 
-                self.blob_service_client.create_container(container_name, metadata)
+                elif metadata is not None:
 
-            return True
+                    self.blob_service_client.create_container(container_name, metadata)
 
-        else:
-            raise Exception("Container specified for creation does not match that instantiated in BlobFunctions class call")
+                return True
+
+            else:
+                raise Exception("Container specified for creation does not match that instantiated in BlobFunctions class call")
+        
+        except Exception as e:
+            
+            return e
 
     def list_containers(self, **kwargs):
         """
@@ -293,7 +322,12 @@ class BlobFunctions:
         Returns:
             ListGenerator: a generator to list containers under specified account
         """
+        try:
 
-        retrieved_containers = self.blob_service_client.list_containers(kwargs)
+            retrieved_containers = self.blob_service_client.list_containers(kwargs)
 
-        return retrieved_containers
+            return retrieved_containers
+
+        except Exception as e:
+            
+            return e

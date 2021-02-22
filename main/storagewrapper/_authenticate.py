@@ -1,15 +1,38 @@
 from azure.identity import ClientSecretCredential, UsernamePasswordCredential
 from azure.keyvault.secrets import SecretClient
+from storagewrapper._exceptions import AuthenticationError
 
 
 class AuthenticateFunctions:
     """
     Sets up authentication for azure storage operations
+
+    Can either authenticate as a user, or using an app registration.
+
+    In both instances a credential dictionary will need to passed at instantiation
+
+    If authenticating as a user it will look something like: 
+    
+    params = {"authentication_method": "user", 
+              "client_id": "XXXX",
+              "username": "username@website.com",
+              "password": "Wouldn'tYouLikeToKnow"}
+
+    If authenticating as a user this will look like:
+
+    params = {"authentication_method":"client_secret",
+              "client_id": "XXXX"
+              "storage_account_app_id": "aadappreg123",
+              "storage_account_app_key": "XXXXXX"}
+
+    args:
+        params (dict): dictionary of params used to authenticate
+
     """
 
     def __init__(self, params):
         self.params = params
-        self.token = self.generate_credential()
+        self.token = self.__generate_credential()
 
     def __generate_client_secret_credential(self, tenant_id, storage_account_id, storage_account_key):
         """
@@ -52,40 +75,9 @@ class AuthenticateFunctions:
 
         return token_credential
 
-    def __get_secret(self, secret_name):
-
-        vault_url = self.params["vault_url"]
-
-        secret_client = SecretClient(vault_url=vault_url, credential=self.token)
-        secret = secret_client.get_secret(secret_name)
-
-        return secret.value
-
-    def _check_if_vault_backed(self):
-
-        if self.params['vault_backed'] is True:
-
-            storage_account_app_key = self.__get_secret(self.params["app_key_name"])
-            storage_account_app_id = self.__get_secret(self.params["app_id_name"])
-
-            return storage_account_app_key, storage_account_app_id
-
-        else:
-            try:
-                storage_account_app_id = self.params["storage_account_app_id"]
-                storage_account_app_key = self.params["storage_account_app_key"]
-
-                return storage_account_app_key, storage_account_app_id
-
-            except Exception as e:
-                raise Exception("Failed to identify app id and key: \n{}".format(e))
-
-    def generate_credential(self):
+    def __generate_credential(self):
         """
         Will generate credential based on authentication_method selected
-
-        param authentication_method: str
-        param: kwargs
 
         return token_crential: Azure credential obj
         """
@@ -93,15 +85,16 @@ class AuthenticateFunctions:
 
         if authentication_method == "client_secret":
 
-            tenant_id = self.params["tenant_id"]
+            tenant_id = self.params["client_id"]
 
-            storage_account_app_key, storage_account_app_id = self._check_if_vault_backed()
+            storage_account_app_id = self.params["storage_account_app_id"]
+            storage_account_app_key = self.params["storage_account_app_key"]
 
             token_credential = self.__generate_client_secret_credential(tenant_id, storage_account_app_id, storage_account_app_key)
 
             return token_credential
 
-        elif authentication_method == "User":
+        elif authentication_method == "user":
 
             client_id = self.params["client_id"]
             username = self.params["username"]
@@ -110,3 +103,6 @@ class AuthenticateFunctions:
             token_credential = self.__generate_user_credential(client_id, username, password)
 
             return token_credential
+
+        else:
+            raise AuthenticationError(f"Authentication method given invalid: {authentication_method}. Must be 'user' or 'client_secret'.")
