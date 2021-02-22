@@ -37,7 +37,7 @@ def instantiate_blob_functions(context):
 def create_test_container(context, container):
     creation_status = context.blob_functions.create_container(container_name=container)
     print(creation_status)
-    assert creation_status == True
+    assert creation_status is True
 
 
 @when("a upload to blob function is called to {container}")
