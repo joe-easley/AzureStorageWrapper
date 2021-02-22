@@ -10,7 +10,6 @@ class BlobFunctions:
     Args:
         token(TokenCredentialsClass obj): A token from the authentication module
         storage_account_name(str): Name of the storage account
-        container_name(str, Optional): Name of container, required for operations within a container eg blob deletion, blob list etc. Defaults to None.
         sas_duration(int, Optional): Controls how long a container sas is valid for. Defaults to 1 hour
         sas_permissions(dict, Optional): Controls what permissions a SAS has. Defaults to read, write, list and delete permissions.
 
@@ -21,22 +20,19 @@ class BlobFunctions:
 
     """
 
-    def __init__(self, token, storage_account_name, container_name=None, sas_duration=1, sas_permissions=None, sas_method="UserDelegationKey", vault_url=None, access_key_secret_name=None):
+    def __init__(self, token, storage_account_name, sas_duration=1, sas_permissions=None, sas_method="UserDelegationKey", vault_url=None, access_key_secret_name=None):
         self.token = token
         self.storage_account_name = storage_account_name
-        self.container_name = container_name
         self.sas_duration = sas_duration
         self.sas_permissions = sas_permissions
         self.sas_method = sas_method
         self.vault_url = vault_url
         self.access_key_secret_name = access_key_secret_name
-        self.blob_service_client = self._create_blob_service_client()
-        self.container_client = self._create_container_client()
     
     def __str__(self):
         return f"Functions for operating blob storage within storage account:'{self.storage_account_name}'"
 
-    def _create_blob_sas_token(self):
+    def _create_blob_sas_token(self, container_name):
         """
         Generates blob sas token
 
@@ -47,17 +43,17 @@ class BlobFunctions:
         return sas_key: str
         """
 
-        sas_key = self._create_sas_key()
+        sas_key = self._create_sas_key(container_name)
 
         return sas_key
 
-    def _create_sas_key(self):
+    def _create_sas_key(self, container_name):
 
-        sas_token = self.__access_key_or_udk()
+        sas_token = self.__access_key_or_udk(container_name)
 
         return sas_token
 
-    def __access_key_or_udk(self):
+    def __access_key_or_udk(self, container_name):
         """Checks if access key is required or if User Delegation Key method is
 
         Returns:
@@ -66,12 +62,14 @@ class BlobFunctions:
         csp = self.__define_sas_permissions()
 
         if self.sas_method == "UserDelegationKey":
-            udk = self.blob_service_client.get_user_delegation_key(key_start_time=datetime.utcnow(),
+            blob_service_client = self._create_blob_service_client()
+
+            udk = blob_service_client.get_user_delegation_key(key_start_time=datetime.utcnow(),
                                                                    key_expiry_time=datetime.utcnow() + timedelta(hours=self.sas_duration))
 
             sas_token = generate_container_sas(
                 account_name=self.storage_account_name,
-                container_name=self.container_name,
+                container_name=container_name,
                 user_delegation_key=udk,
                 permission=csp,
                 expiry=datetime.utcnow() + timedelta(hours=self.sas_duration)
@@ -127,7 +125,7 @@ class BlobFunctions:
 
             return permissions
 
-    def _create_blob_client_from_url(self, blob_name):
+    def _create_blob_client_from_url(self, blob_name, container_name):
         """
         Generates a blob sas url, requires blob_name
 
@@ -138,9 +136,9 @@ class BlobFunctions:
         return blob_client: BlobClientObj
         """
 
-        blob_sas_token = self._create_blob_sas_token()
+        blob_sas_token = self._create_blob_sas_token(container_name=container_name)
 
-        blob_sas_url = f"https://{self.storage_account_name}.blob.core.windows.net/{self.container_name}/{blob_name}?{blob_sas_token}"
+        blob_sas_url = f"https://{self.storage_account_name}.blob.core.windows.net/{container_name}/{blob_name}?{blob_sas_token}"
 
         blob_client = BlobClient.from_blob_url(blob_sas_url)
 
@@ -156,7 +154,7 @@ class BlobFunctions:
 
         return blob_service_client
 
-    def _create_container_client(self):
+    def _create_container_client(self, container_name):
         """
         Generates a container client using blob service client
 
@@ -164,16 +162,14 @@ class BlobFunctions:
         return container_client: ContainerClientObj
         """
 
-        if self.container_name is not None:
+        blob_service_client = self._create_blob_service_client()
 
-            container_client = self.blob_service_client.get_container_client(self.container_name)
+        container_client = blob_service_client.get_container_client(container_name)
 
-            return container_client
+        return container_client
 
-        else:
-            return None
 
-    def list_blobs(self, name_starts_with="", timeout=10):
+    def list_blobs(self, container_name, name_starts_with="", timeout=10):
         """Returns a generator to list the blobs under the specified container
 
         Args:
@@ -184,7 +180,9 @@ class BlobFunctions:
             list: list of all blobs in container
         """
         try:
-            blobs_in_container = self.container_client.list_blobs()
+            container_client = self._create_container_client(container_name=container_name)
+
+            blobs_in_container = container_client.list_blobs()
 
             blobs_list = []
 
@@ -198,7 +196,7 @@ class BlobFunctions:
             
             return e
 
-    def delete_blob(self, blob_name):
+    def delete_blob(self, blob_name, container_name):
         """Deletes a specified blob
 
         Args:
@@ -209,7 +207,9 @@ class BlobFunctions:
         """
         try:
             
-            self.container_client.delete_blob(blob_name, delete_snapshots=None)
+            container_client = self._create_container_client(container_name=container_name)
+
+            container_client.delete_blob(blob_name, delete_snapshots=None)
 
             return True
         
@@ -217,12 +217,14 @@ class BlobFunctions:
             
             return e
 
-    def upload_blob(self, blob_name, data, overwrite=True, blob_type="BlockBlob"):
+    def upload_blob(self, blob_name, data, container_name, overwrite=True, blob_type="BlockBlob"):
         """Creates a new blob from a data source with automatic chunking
 
         Args:
             blob_name (str or BlobProperties): The blob with which to interact. If specified, this value will override a blob value specified in the blob URL
             data (str): The blob data to upload.
+            container_name (str): Name of container to upload blob to
+            overwrite (bool, opt): Whether an existing blob should be overwritten. Defualts to True
             blob_type (str, optional): The type of the blob. This can be either BlockBlob, PageBlob or AppendBlob. Defaults to "BlockBlob".
 
         Returns:
@@ -230,7 +232,7 @@ class BlobFunctions:
         """
         try:
 
-            blob_client = self._create_blob_client_from_url(blob_name)
+            blob_client = self._create_blob_client_from_url(blob_name, container_name)
             blob_client.upload_blob(data=data, blob_type=blob_type, overwrite=overwrite)
 
             return blob_client
@@ -259,14 +261,12 @@ class BlobFunctions:
         """
         try:
 
-            if container_name == self.container_name:
+            container_client = self._create_container_client(container_name)
 
-                self.container_client.delete_container()
+            container_client.delete_container()
 
-                return True
+            return True
 
-            else:
-                raise Exception("Container specified for deletion does not match that instantiated in BlobFunctions class call")
         
         except Exception as e:
             
@@ -288,25 +288,22 @@ class BlobFunctions:
         """
         try:
 
-            if container_name == self.container_name:
+            blob_service_client = self._create_blob_service_client()
 
-                if metadata is None:
-                    self.blob_service_client.create_container(container_name)
+            if metadata is None:
+                blob_service_client.create_container(container_name)
 
-                elif metadata is not None:
+            elif metadata is not None:
 
-                    self.blob_service_client.create_container(container_name, metadata)
+                blob_service_client.create_container(container_name, metadata)
 
-                return True
+            return True
 
-            else:
-                raise Exception("Container specified for creation does not match that instantiated in BlobFunctions class call")
-        
         except Exception as e:
             
             return e
 
-    def list_containers(self, **kwargs):
+    def list_containers(self, name_starts_with=None, include_metadata=False, include_deleted=False, results_per_page=5000, timeout=10):
         """
         Returns a generator to list the containers under the specified account.
 
@@ -324,7 +321,11 @@ class BlobFunctions:
         """
         try:
 
-            retrieved_containers = self.blob_service_client.list_containers(kwargs)
+
+            blob_service_client = self._create_blob_service_client()
+
+            retrieved_containers = blob_service_client.list_containers(name_starts_with=name_starts_with, include_metadata=include_metadata, 
+                                                                       include_deleted=include_deleted, results_per_page=results_per_page, timeout=timeout)
 
             return retrieved_containers
 
