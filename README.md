@@ -13,3 +13,7 @@ This repo includes a library ('storagewrapper') that wraps around azure storage 
 Its intent is to simplify the SDK's further so that you only ever need to interact with one client per storage type. Currently this library supports operations with blob, file share and queue storeage.
 
 For further information on how to use this library, and see what functions are currently supported click [here](https://github.com/joe-easley/AzureStorageWrapper/blob/main/main/README.md)
+
+## Other
+
+Pull requests and feedback are welcome. 
