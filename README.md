@@ -1,6 +1,10 @@
 # AzureStorageWrapper
 [![Actions Status](https://github.com/joe-easley/AzureStorageWrapper/workflows/Behave%20Tests/badge.svg)](https://github.com/joe-easley/AzureStorageWrapper/actions)
+
+
 A wrapper for azure storage tools
+
+Tests currently failing due to azure test account being temporarily unavailable. Blob functions and most file functions have been recently tested and are working as expected.
 
 ## Setup
 
