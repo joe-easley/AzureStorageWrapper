@@ -97,7 +97,8 @@ class FileShareFunctions:
 
     def _get_share_client(self, share_name):
         fs_sas = self._create_sas_for_fileshare()
-        share_client = ShareClient(account_url=self.storage_account_name, share_name=share_name, credential=fs_sas)
+        account_url = f"https://{self.storage_account_name}.file.core.windows.net"
+        share_client = ShareClient(account_url=account_url, share_name=share_name, credential=fs_sas)
 
         return share_client
 
@@ -138,15 +139,6 @@ class FileShareFunctions:
         secret = secret_client.get_secret(self.secret_name)
 
         return secret.value
-
-    def __filter_vars(self, **kwargs):
-        arguments = {}
-
-        for key, value in kwargs.items():
-            if value is not None:
-                arguments[key] = value
-
-        return arguments
 
     def create_fileshare_directory(self, share_name, directory_path):
         """Creates a new directory under the directory referenced by the client..
@@ -301,24 +293,27 @@ class FileShareFunctions:
 
             return status
 
-    def list_directories_and_files(self, share_name, directory_name="", name_starts_with="", timeout=10):
+    def list_directories_and_files(self, share_name, directory_name="", name_starts_with="", marker="", timeout=10):
         """Returns a generator to list the directories and files under the specified share.
         The generator will lazily follow the continuation tokens returned by the service and stop when all directories
         and files have been returned or num_results is reached.
 
         Args:
             share_name (str): Name of existing share.
-            directory_name (str, optional): The path to the directory. Defaults to "".
-            timeout (int, optional): expressed in seconds. Defaults to 10.
+            directory_name (str): The path to the directory.
             name_starts_with (str, optional): list only the files and/or directories with the given prefix. Defaults to None.
+            marker (str, optional): An opaque continuation token. This value can be retrieved from the next_marker field of a previous generator object. If specified, this generator will begin returning results from this point.
+            timeout (int, optional): expressed in seconds. Defaults to 10.
+            
 
         Returns:
             Generator
         """
         try:
-            share_client = self._get_share_client(share_name)
 
-            list_of_directories_and_files = share_client.list_directories_and_files(directory_name=directory_name, name_starts_with=name_starts_with)
+            directory_client = self._get_directory_client(share_name=share_name, directory_path=directory_name)
+
+            list_of_directories_and_files = directory_client.list_directories_and_files()
 
             return list_of_directories_and_files
 
