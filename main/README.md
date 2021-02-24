@@ -1,12 +1,8 @@
 # AzureStorageWrapper
+![Behave Tests](https://github.com/joe-easley/AzureStorageWrapper/workflows/Behave%20Tests/badge.svg?branch=main)
 A wrapper for azure storage tools.
 
 Tests currently failing due to azure test account being temporarily unavailable. Blob functions and most file functions have been recently tested and are working as expected
-
-
-
-![Behave Tests](https://github.com/joe-easley/AzureStorageWrapper/workflows/Behave%20Tests/badge.svg?branch=main)
-
 ## Setup
 
 The azure storage wrapper requires a configuration dictionary to be setup in order to successfully authenticate and run commands. The module is currently setup to receive a dictionary similar to below.
