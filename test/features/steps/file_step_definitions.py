@@ -1,6 +1,6 @@
 from storagewrapper import FileShareFunctions, AuthenticateFunctions
-from behave import given, when
-# import os
+from behave import given, when, then
+import os
 
 
 @given("parameters are set up for fileshare")
@@ -10,7 +10,7 @@ def set_up_params(context):
     context.storage_account_app_id = context.config.userdata.get("storage_account_app_id")
     context.storage_account_app_key = context.config.userdata.get("storage_account_app_key")
     context.storage_account_name = context.config.userdata.get("storage_account_name")
-    context.blob_name = "blob.txt"
+    context.file_name = "blob.txt"
     context.params = {"tenant_id": context.tenant_id,
                       "storage_account_app_id": context.storage_account_app_id,
                       "storage_account_app_key": context.storage_account_app_key,
@@ -47,5 +47,32 @@ def create_directory_in_share(context, directory, share):
 
     assert status is True
 
-# @when("a {file} is uploaded to {share}")
-# def upload_file_to_new_share(context, file, share):
+@when("a {file} is uploaded to {share} in {directory}")
+def upload_file_to_new_share(context, file, share, directory):
+    path_to_file = f"{os.getcwd()}/data/{context.file_name}"
+
+    with open(path_to_file, "rb") as data:
+        file_client = context.fileshare_functions.upload_file(share_name=share, directory_path=directory, file_name=file, data=data)
+        data.close()
+    
+    assert file_client is not None
+
+def check_dirs(context, share, directory):
+    dirs = context.fileshare_functions.list_directories_and_files(share)
+    for folder in dirs:
+        if folder['name'] == directory:
+            return True
+    return False
+
+def check_files(context, share, directory, file_name):
+    files = context.fileshare_functions.list_directories_and_files(share_name=share, directory_name=directory)
+    for file in files:
+        if file['name'] == file:
+            return True
+    return False
+
+@then('{file} and {directory} are found in {share}')
+def check_files_and_dirs_exist(context, file, directory, share):
+    dir_status = check_dirs(context, share, directory)
+    file_status = check_files(context, share, directory, file_name=file)
+    assert dir_status and file_status

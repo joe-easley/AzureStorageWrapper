@@ -10,7 +10,8 @@ Feature: File storage functionality
         And FileShareFunctions has been instantiated with all permissions
         When file<share> is called for creation
         When a <directory> is created in <share>
-        When a <file> is uploaded to <share>
+        When a <file> is uploaded to <share> in <directory>
+        Then <file> and <directory> are found in <share>
         Examples:
             | authentication_method | share       | directory |
             | client_secret         | test-share  | toplevel  |
