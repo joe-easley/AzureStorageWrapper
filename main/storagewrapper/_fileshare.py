@@ -140,29 +140,6 @@ class FileShareFunctions:
 
         return secret.value
 
-    def create_fileshare_directory(self, share_name, directory_path):
-        """Creates a new directory under the directory referenced by the client..
-
-        Args:
-            share_name (str): Name of existing share.
-            directory_path (str): Name of directory to create, including the path to the parent directory
-
-        Returns:
-            Directory-updated property dict (Etag and last modified).
-        """
-        try:
-            share_directory_client = self._get_directory_client(share_name, directory_path)
-
-            status = share_directory_client.create_directory()
-
-            return status
-
-        except Exception as e:
-            
-            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
-
-            return status
-
     def copy_file(self, share_name, file_path, source_url):
         """
         Copies a file from a url to file share destination
@@ -185,6 +162,29 @@ class FileShareFunctions:
 
             return file_properties
         
+        except Exception as e:
+            
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
+
+            return status
+
+    def create_fileshare_directory(self, share_name, directory_path):
+        """Creates a new directory under the directory referenced by the client..
+
+        Args:
+            share_name (str): Name of existing share.
+            directory_path (str): Name of directory to create, including the path to the parent directory
+
+        Returns:
+            Directory-updated property dict (Etag and last modified).
+        """
+        try:
+            share_directory_client = self._get_directory_client(share_name, directory_path)
+
+            status = share_directory_client.create_directory()
+
+            return status
+
         except Exception as e:
             
             status = self.__handle_errors(sys._getframe().f_code.co_name, e)
@@ -382,26 +382,6 @@ class FileShareFunctions:
 
             return status
 
-    def create_share_service_client(self):
-        """
-        For operations not supported by the storage wrapper this method will create a share service client.
-        
-            Returns:
-                ShareServiceClient class obj
-                https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.shareserviceclient?view=azure-python
-        """
-
-        try:
-
-            share_service_client = self._create_share_service_client()
-            return share_service_client
-
-        except Exception as e:
-            
-            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
-
-            return status
-
     def create_share_client(self, share_name):
         """
         For operations not supported by the storage wrapper this method will create a share client.
@@ -465,6 +445,26 @@ class FileShareFunctions:
             share_file_client = self._get_share_file_client(share_name, file_path)
 
             return share_file_client
+
+        except Exception as e:
+            
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
+
+            return status
+
+    def create_share_service_client(self):
+        """
+        For operations not supported by the storage wrapper this method will create a share service client.
+        
+            Returns:
+                ShareServiceClient class obj
+                https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.shareserviceclient?view=azure-python
+        """
+
+        try:
+
+            share_service_client = self._create_share_service_client()
+            return share_service_client
 
         except Exception as e:
             
