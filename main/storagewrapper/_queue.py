@@ -1,4 +1,6 @@
 from azure.storage.queue import QueueServiceClient
+from storagewrapper._exceptions import QueueFunctionsError
+import sys
 
 
 class QueueFunctions:
@@ -26,14 +28,36 @@ class QueueFunctions:
     If a queue client exists (eg after using create queue) then this can be client can be used rather than a fresh client being generated
     """
 
-    def __init__(self, token, storage_account_name, queue_name=None, queue_client=None):
+    def __init__(self, token, storage_account_name, queue_name=None, queue_client=None, handle_exceptions=False):
         self.token = token
+        self.handle_exceptions = handle_exceptions
         self.queue_client = queue_client
         self.storage_account_name = storage_account_name
         self.queue_name = queue_name
 
     def __str__(self):
         return f"Functions for operating queue storage within storage account:'{self.storage_account_name}'"
+
+    def __handle_errors(self, func_name, error, exception_type=None):
+
+        error_message = f"{error} in {func_name}"
+
+        if self.handle_exceptions:
+
+            return False
+        
+        elif not self.handle_exceptions:
+
+            self.__raise_exceptions(message=error_message, exception_type=exception_type)
+
+    def __raise_exceptions(self, message, exception_type):
+
+        if exception_type is None:
+
+            raise QueueFunctionsError(message)
+
+        else:
+            raise exception_type(message)
 
     def _generate_queue_service_client(self):
         """
@@ -64,19 +88,21 @@ class QueueFunctions:
 
         return queue_client
 
-    def clear_messages(self, timeout=10):
+    def clear_messages(self, queue_name, timeout=10):
         """
         Deletes all messages from a queue. Timeout value auto-set to 10seconds.
 
         param timeout: int
         """
         try:
-
-            self.queue_client.clear_messages(timeout=timeout)
+            queue_client = self._gen_queue_client(queue_name=queue_name)
+            queue_client.clear_messages(timeout=timeout)
 
         except Exception as e:
             
-            return e
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
+
+            return status
 
     def receive_message(self, timeout=10, visibility_timeout=300):
         """
@@ -97,7 +123,9 @@ class QueueFunctions:
 
         except Exception as e:
             
-            return e
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
+
+            return status
 
     def delete_message(self, message, pop_receipt, timeout=10):
         """
@@ -119,7 +147,9 @@ class QueueFunctions:
 
         except Exception as e:
             
-            return e
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
+
+            return status
 
     def send_message(self, content, visibility_timeout=604800, time_to_live=604800, timeout=10):
         """
@@ -140,7 +170,9 @@ class QueueFunctions:
 
         except Exception as e:
             
-            return e
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
+
+            return status
 
     def update_message(self, message, pop_receipt, content, visibility_timeout=604800, timeout=10):
         """
@@ -155,9 +187,17 @@ class QueueFunctions:
 
         return updated_message: QueueMessage object
         """
-        updated_message = self.queue_client.update_message(message, pop_receipt=pop_receipt, content=content)
 
-        return updated_message
+        try:
+            updated_message = self.queue_client.update_message(message, pop_receipt=pop_receipt, content=content)
+
+            return updated_message
+
+        except Exception as e:
+            
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
+
+            return status
 
     def create_queue(self, name, metadata, timeout=10):
         """
@@ -171,10 +211,19 @@ class QueueFunctions:
         return QueueClient obj
 
         """
-        queue_service_client = self._generate_queue_service_client()
-        queue_client = queue_service_client.create_queue(name=name, metadata=metadata, timeout=timeout)
 
-        return queue_client
+        try:
+
+            queue_service_client = self._generate_queue_service_client()
+            queue_client = queue_service_client.create_queue(name=name, metadata=metadata, timeout=timeout)
+
+            return queue_client
+
+        except Exception as e:
+            
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
+
+            return status
 
     def delete_queue(self, queue_name, timeout=120):
         """
@@ -186,10 +235,18 @@ class QueueFunctions:
 
         return None
         """
-        queue_service_client = self._generate_queue_service_client()
-        queue_service_client.delete_queue(queue=queue_name, timeout=timeout)
 
-        return None
+        try:
+            queue_service_client = self._generate_queue_service_client()
+            queue_service_client.delete_queue(queue=queue_name, timeout=timeout)
+
+            return None
+
+        except Exception as e:
+            
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
+
+            return status
 
     def list_queues(self, name_starts_with="", include_metadata=True, results_per_page=100, timeout=60):
         """
@@ -205,15 +262,22 @@ class QueueFunctions:
         return iterable (auto-paging) of QueueProperties
 
         """
-        queue_service_client = self._generate_queue_service_client()
-        list_queues = queue_service_client.list_queues(
-            name_starts_with=name_starts_with,
-            include_metadata=include_metadata,
-            results_per_page=results_per_page,
-            timeout=timeout
-        )
+        try:
+            queue_service_client = self._generate_queue_service_client()
+            list_queues = queue_service_client.list_queues(
+                name_starts_with=name_starts_with,
+                include_metadata=include_metadata,
+                results_per_page=results_per_page,
+                timeout=timeout
+            )
 
-        return list_queues
+            return list_queues
+
+        except Exception as e:
+                
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
+
+            return status
 
     def create_queue_service_client(self):
         queue_service_client = self._generate_queue_service_client()
