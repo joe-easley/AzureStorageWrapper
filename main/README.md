@@ -39,7 +39,7 @@ If you have access as user to an azure storage resource then you can authenticat
 
 2. As a service principal
 
-You can use a service principal to authenticate access. You can do this by assigning the value "client_secret" to the authentication key in the params dictionary. If using this method you must also add tenant_id, storage_account_id and storage_account_key as key value pairs to the param dictionary.
+You can use a service principal to authenticate access. You can do this by assigning the value "client_secret" to the authentication key in the params dictionary. If using this method you must also add tenant_id, app_id and app_key as key-value pairs to the param dictionary.
 
 [For further information see here](https://docs.microsoft.com/en-us/python/api/azure-identity/azure.identity.clientsecretcredential?view=azure-python)
 

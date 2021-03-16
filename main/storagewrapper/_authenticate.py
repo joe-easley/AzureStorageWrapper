@@ -87,8 +87,8 @@ class AuthenticateFunctions:
 
             tenant_id = self.params["client_id"]
 
-            storage_account_app_id = self.params["storage_account_app_id"]
-            storage_account_app_key = self.params["storage_account_app_key"]
+            storage_account_app_id = self.params["app_id"]
+            storage_account_app_key = self.params["app_key"]
 
             token_credential = self.__generate_client_secret_credential(tenant_id, storage_account_app_id, storage_account_app_key)
 
