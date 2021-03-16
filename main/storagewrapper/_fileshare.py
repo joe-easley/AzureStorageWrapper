@@ -411,7 +411,7 @@ class FileShareFunctions:
 
                 self.__recursively_generate_list_of_files_and_dirs(share_name, directory_name=sub_dir)
 
-            elif not file ['is_directory']:
+            elif not file['is_directory']:
 
                 file_path = f"{directory_name}/{file['name']}"
 
