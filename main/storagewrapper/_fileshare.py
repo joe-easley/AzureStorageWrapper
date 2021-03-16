@@ -216,6 +216,96 @@ class FileShareFunctions:
 
             return status
 
+    def create_share_client(self, share_name):
+        """
+        For operations not supported by the storage wrapper this method will create a share client.
+        
+            Args:
+                share_name (str): name of share
+
+
+            Returns:
+                ShareDirectoryClient class obj
+                https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.shareclient?view=azure-python
+        """
+        try:
+            share_client = self._get_share_client(share_name)
+
+            return share_client
+
+        except Exception as e:
+            
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
+
+            return status
+
+    def create_share_directory_client(self, share_name, directory):
+        """
+        For operations not supported by the storage wrapper this method will create a share directory client.
+        
+            Args:
+                share_name (str): name of share in which directory resides
+                directory (str): directory name within share
+
+            Returns:
+                ShareDirectoryClient class obj
+                https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.sharedirectoryclient?view=azure-python
+        """
+        try:
+            share_directory_client = self._get_directory_client(share_name, directory)
+
+            return share_directory_client
+
+        except Exception as e:
+            
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
+
+            return status
+
+    def create_share_file_client(self, share_name, file_path):
+        """
+        For operations not supported by the storage wrapper this method will create a share file client.
+        
+            Args:
+                share_name (str): name of share in which directory resides
+                directory (str): directory name within share
+
+            Returns:
+                ShareFileClient class obj
+                https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.sharefileclient?view=azure-python
+        """
+        try:
+
+            share_file_client = self._get_share_file_client(share_name, file_path)
+
+            return share_file_client
+
+        except Exception as e:
+            
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
+
+            return status
+
+    def create_share_service_client(self):
+        """
+        For operations not supported by the storage wrapper this method will create a share service client.
+        
+            Returns:
+                ShareServiceClient class obj
+                https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.shareserviceclient?view=azure-python
+        """
+
+        try:
+
+            share_service_client = self._create_share_service_client()
+            return share_service_client
+
+        except Exception as e:
+            
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
+
+            return status
+    
     def delete_directory(self, share_name, directory_name):
         """Deletes the specified empty directory. Note that the directory must be empty before it can be deleted.
         Attempting to delete directories that are not empty will fail.
@@ -243,19 +333,18 @@ class FileShareFunctions:
 
             return status
 
-    def delete_file(self, share_name, file_name):
+    def delete_file(self, share_name, file_path):
         """Marks the specified file for deletion. The file is later deleted during garbage collection.
 
         Args:
             share_name (str): Name of existing share
-            directory_name (str): The path to the directory.
-            file_name (str): Name of existing file and path.
+            file_path (str): Name of existing file and path.
             timeout (int, optional): expressed in seconds. Defaults to 20.
         """
 
         try:
 
-            share_file_client = self._get_share_file_client(share_name, file_name)
+            share_file_client = self._get_share_file_client(share_name, file_path)
             share_file_client.delete_file()
 
             return True
@@ -265,6 +354,68 @@ class FileShareFunctions:
             status = self.__handle_errors(sys._getframe().f_code.co_name, e)
 
             return status
+
+    def delete_files(self, share_name, directory_name, file_names, recursive=False):
+        """Deletes multiple files. If recursive is selected then all files within the specified directory and below will be deleted.
+
+        Args:
+            share_name ([str]): Name of the share
+            file_names (list)
+            recursive (bool, optional): True will recursively delete all files and folders below parent directory. Defaults to False.
+        """
+
+        try:
+
+            if recursive:
+
+                self.files = []
+                self.directories = []
+
+                self.__recursively_generate_list_of_files_and_dirs(share_name, directory_name)
+
+                for file in self.files:
+                    self.delete_file(share_name=share_name, file_path=file)
+                
+                for directory in self.directories:
+                    self.delete_directory(share_name=share_name, directory_name=directory)
+
+            elif not recursive:
+                
+                for file in file_names:
+
+                    file_path = f"{directory_name}/{file}"
+
+                    self.delete_file(share_name=share_name, file_path=file_path)
+
+            else:
+
+                raise FileShareFunctionsError("Recursive argument not recognised")
+
+        except Exception as e:
+            
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
+
+            return status
+
+    def __recursively_generate_list_of_files_and_dirs(self, share_name, directory_name):
+
+        files_and_dirs = self.list_directories_and_files(share_name, directory_name)
+
+        for file in files_and_dirs:
+            
+            if file['is_directory']:
+                
+                sub_dir = f"{directory_name}/{file['name']}"
+
+                self.directories.append(sub_dir)
+
+                self.__recursively_generate_list_of_files_and_dirs(share_name, directory_name=sub_dir)
+
+            elif not file ['is_directory']:
+
+                file_path = f"{directory_name}/{file['name']}"
+
+                self.files.append(file_path)
 
     def delete_share(self, share_name, timeout=10, delete_snapshots=None):
         """Marks the specified share for deletion. If the share does not exist, the operation fails on the service
@@ -375,96 +526,6 @@ class FileShareFunctions:
             share_file_client = share_directory_client.upload_file(file_name=file_name, data=data, metadata=metadata, length=length)
 
             return share_file_client
-
-        except Exception as e:
-            
-            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
-
-            return status
-
-    def create_share_client(self, share_name):
-        """
-        For operations not supported by the storage wrapper this method will create a share client.
-        
-            Args:
-                share_name (str): name of share
-
-
-            Returns:
-                ShareDirectoryClient class obj
-                https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.shareclient?view=azure-python
-        """
-        try:
-            share_client = self._get_share_client(share_name)
-
-            return share_client
-
-        except Exception as e:
-            
-            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
-
-            return status
-
-    def create_share_directory_client(self, share_name, directory):
-        """
-        For operations not supported by the storage wrapper this method will create a share directory client.
-        
-            Args:
-                share_name (str): name of share in which directory resides
-                directory (str): directory name within share
-
-            Returns:
-                ShareDirectoryClient class obj
-                https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.sharedirectoryclient?view=azure-python
-        """
-        try:
-            share_directory_client = self._get_directory_client(share_name, directory)
-
-            return share_directory_client
-
-        except Exception as e:
-            
-            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
-
-            return status
-
-    def create_share_file_client(self, share_name, file_path):
-        """
-        For operations not supported by the storage wrapper this method will create a share file client.
-        
-            Args:
-                share_name (str): name of share in which directory resides
-                directory (str): directory name within share
-
-            Returns:
-                ShareFileClient class obj
-                https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.sharefileclient?view=azure-python
-        """
-        try:
-
-            share_file_client = self._get_share_file_client(share_name, file_path)
-
-            return share_file_client
-
-        except Exception as e:
-            
-            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
-
-            return status
-
-    def create_share_service_client(self):
-        """
-        For operations not supported by the storage wrapper this method will create a share service client.
-        
-            Returns:
-                ShareServiceClient class obj
-                https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.shareserviceclient?view=azure-python
-        """
-
-        try:
-
-            share_service_client = self._create_share_service_client()
-            return share_service_client
 
         except Exception as e:
             
