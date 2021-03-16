@@ -8,13 +8,13 @@ from unittest import TestCase as tc
 def set_up_params(context):
     context.client_id = context.config.userdata.get("client_id")
     context.vault_url = context.config.userdata.get("vault_url")
-    context.storage_account_app_id = context.config.userdata.get("storage_account_app_id")
-    context.storage_account_app_key = context.config.userdata.get("storage_account_app_key")
+    context.app_id = context.config.userdata.get("app_id")
+    context.app_key = context.config.userdata.get("app_key")
     context.storage_account_name = context.config.userdata.get("storage_account_name")
     context.blob_name = "blob.txt"
     context.params = {"client_id": context.client_id,
-                      "storage_account_app_id": context.storage_account_app_id,
-                      "storage_account_app_key": context.storage_account_app_key,
+                      "app_id": context.storage_account_app_id,
+                      "app_key": context.storage_account_app_key,
                       "vault_backed": False}
 
 

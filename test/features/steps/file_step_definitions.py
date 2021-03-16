@@ -7,13 +7,13 @@ import os
 def set_up_params(context):
     context.tenant_id = context.config.userdata.get("tenant_id")
     context.vault_url = context.config.userdata.get("vault_url")
-    context.storage_account_app_id = context.config.userdata.get("storage_account_app_id")
-    context.storage_account_app_key = context.config.userdata.get("storage_account_app_key")
+    context.app_id = context.config.userdata.get("app_id")
+    context.app_key = context.config.userdata.get("app_key")
     context.storage_account_name = context.config.userdata.get("storage_account_name")
     context.file_name = "blob.txt"
     context.params = {"tenant_id": context.tenant_id,
-                      "storage_account_app_id": context.storage_account_app_id,
-                      "storage_account_app_key": context.storage_account_app_key,
+                      "app_id": context.storage_account_app_id,
+                      "app_key": context.storage_account_app_key,
                       "vault_backed": False}
 
 
