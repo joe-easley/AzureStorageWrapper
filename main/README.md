@@ -29,6 +29,9 @@ The dictionary must include;
 
 To use the azure storage functions you must first authenticate.
 
+The token is stored as an instance variable so could be accessed as: 
+    token = AuthenticateFunctions(params).token
+
 There are currently two ways of authorising access.
 
 1. As a user
@@ -37,14 +40,24 @@ If you have access as user to an azure storage resource then you can authenticat
 
 [For further information see here](https://docs.microsoft.com/en-us/python/api/azure-identity/azure.identity.usernamepasswordcredential?view=azure-python)
 
+    params = {"authentication_method": "user",
+              "client_id": "XXXX",
+              "username": "joebloggs@microsoft.com",
+              "password": "password123"}
+    token = AuthenticateFunctions(params).token
+
 2. As a service principal
 
 You can use a service principal to authenticate access. You can do this by assigning the value "client_secret" to the authentication key in the params dictionary. If using this method you must also add tenant_id, app_id and app_key as key-value pairs to the param dictionary.
 
 [For further information see here](https://docs.microsoft.com/en-us/python/api/azure-identity/azure.identity.clientsecretcredential?view=azure-python)
 
-The token is stored as an instance variable so could be stored as: 
+    params = {"authentication_method": "user",
+              "client_id": "XXXX",
+              "app_id": "applicationId",
+              "app_key": "applicationKey"}
     token = AuthenticateFunctions(params).token
+
 
 Further authentication is required for using the FileShareFunctions. FileShareFunctions uses an account key to generate an account sas token. This library requires this account key to either be given as an argument during instantiation, or vault url and secret name given so that this secret can be retrieved. More information below.
 

@@ -3,6 +3,9 @@ name: Behave Tests
 on:
   push:
     branches: [ main ]
+    paths:
+      - "**.py"
+      - "**.yml"
   workflow_dispatch:
 
 jobs:
