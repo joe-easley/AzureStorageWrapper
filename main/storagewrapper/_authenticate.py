@@ -34,7 +34,7 @@ class AuthenticateFunctions:
         self.params = params
         self.token = self.__generate_credential()
 
-    def __generate_client_secret_credential(self, tenant_id, storage_account_id, storage_account_key):
+    def __generate_client_secret_credential(self, tenant_id, app_id, app_key):
         """
         Generates a token using a app id
         param tenant_id: str
@@ -46,7 +46,7 @@ class AuthenticateFunctions:
 
         try:
 
-            token_credential = ClientSecretCredential(tenant_id, storage_account_id, storage_account_key)
+            token_credential = ClientSecretCredential(tenant_id=tenant_id, client_id=app_id, client_secret=app_key)
 
         except Exception as e:
 
@@ -81,28 +81,37 @@ class AuthenticateFunctions:
 
         return token_crential: Azure credential obj
         """
-        authentication_method = self.params["authentication_method"]
+        
+        try:
 
-        if authentication_method == "client_secret":
+            authentication_method = self.params["authentication_method"]
 
-            tenant_id = self.params["client_id"]
+            if authentication_method == "client_secret":
 
-            storage_account_app_id = self.params["app_id"]
-            storage_account_app_key = self.params["app_key"]
+                tenant_id = self.params["client_id"]
 
-            token_credential = self.__generate_client_secret_credential(tenant_id, storage_account_app_id, storage_account_app_key)
+                app_id = self.params["app_id"]
+                app_key = self.params["app_key"]
 
-            return token_credential
+                token_credential = self.__generate_client_secret_credential(tenant_id, app_id, app_key)
 
-        elif authentication_method == "user":
+                return token_credential
 
-            client_id = self.params["client_id"]
-            username = self.params["username"]
-            password = self.params["password"]
+            elif authentication_method == "user":
 
-            token_credential = self.__generate_user_credential(client_id, username, password)
+                client_id = self.params["client_id"]
+                username = self.params["username"]
+                password = self.params["password"]
 
-            return token_credential
+                token_credential = self.__generate_user_credential(client_id, username, password)
 
-        else:
-            raise AuthenticationError(f"Authentication method given invalid: {authentication_method}. Must be 'user' or 'client_secret'.")
+                return token_credential
+
+            else:
+                raise AuthenticationError(f"Authentication method given invalid: {authentication_method}. Must be 'user' or 'client_secret'.")
+        
+        except KeyError:
+
+            print("KeyError: Check Authentication Params")
+            
+            raise KeyError
