@@ -7,23 +7,7 @@ A wrapper for azure storage tools.
 Tests currently failing due to azure test account being temporarily unavailable. Blob functions and most file functions have been recently tested and are working as expected.
 ## Setup
 
-The azure storage wrapper requires a configuration dictionary to be setup in order to successfully authenticate and run commands. The module is currently setup to receive a dictionary similar to below.
-
-Example:
-
-    params = {"authentication_method": "user", 
-              "client_id": "XXXX",
-              "username": "username@username.com",
-              "password": "Wouldn'tYouLikeToKnow,
-              "sas_duration": "5"}
-
-This can be used using something like:
-
-    authentication_token = AuthenticationFunctions(params).token
-
-The dictionary must include;
-- authentication_method (e.g "client_secret" or "user"). See Authentication sections for more information
-- sas_duration (in hours)
+To run functions you must authenticate. The Authentication module (below) can do this, though if you have a [token credential object](https://docs.microsoft.com/en-us/python/api/azure-identity/azure.identity?view=azure-python) then you can pass this directly to the storage functions classes and bypass the Authentication module.
 
 ## Authentication
 
@@ -72,7 +56,7 @@ The currently supported operations on blob storage use the BlobFunctions class.
 
 The BlobFunctions class must be initiated by passing an authentication credential and a sas duration.
 
-    BlobFunctions(token, sas_duration)
+    BlobFunctions(token, storage_account_name, sas_duration *(optional)*, sas_permissions *(optional)*, sas_method*(optional)*, vault_url *(optional)*, access_key_secret_name *(optional)*, handle_exceptions *(optional)*)
 
  They have the following methods:
 
