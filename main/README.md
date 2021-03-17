@@ -56,14 +56,23 @@ The currently supported operations on blob storage use the BlobFunctions class.
 
 The BlobFunctions class must be initiated by passing an authentication credential and a sas duration.
 
-    BlobFunctions(token, storage_account_name, sas_duration *(optional)*, sas_permissions *(optional)*, sas_method*(optional)*, vault_url *(optional)*, access_key_secret_name *(optional)*, handle_exceptions *(optional)*)
+Asterisk denotes optional parameter
+
+
+    BlobFunctions(token, storage_account_name, sas_duration*, sas_permissions*, sas_method*, vault_url*, access_key_secret_name*, handle_exceptions*)
 
  They have the following methods:
 
-- upload_blob(blob_name, data, container_name, storage_account_name, blob_type)
+- upload_blob(blob_name:str, data:str, container_name:str, overwrite*:bool, blob_type*:str)
 
 Uploads a blob to a specified container. No directories exist in blob, but can be inferred in blob name for a virtual directory e.g level1/level2/file. All arguments passed as strings
 
+- delete_container(container_name:str, lease*:str, if_modified_since*:str, if_unmodified_since*:str, etag*:str, match_condition*:str, timeout*:int)
+
+Deletes a container
+
+- create_container(container_name:str, metadata:dict, public_access:str/[PublicAccess](https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.publicaccess?view=azure-python))
+  
 - delete_blob(storage_account_name, container_name, blob_name)
 
 Deletes a specified blob. Arguments must be passed as a string
