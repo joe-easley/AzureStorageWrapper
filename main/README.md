@@ -44,6 +44,7 @@ If you have access as user to an azure storage resource then you can authenticat
               "client_id": "XXXX",
               "username": "joebloggs@microsoft.com",
               "password": "password123"}
+    
     token = AuthenticateFunctions(params).token
 
 2. As a service principal
@@ -56,6 +57,7 @@ You can use a service principal to authenticate access. You can do this by assig
               "client_id": "XXXX",
               "app_id": "applicationId",
               "app_key": "applicationKey"}
+    
     token = AuthenticateFunctions(params).token
 
 
