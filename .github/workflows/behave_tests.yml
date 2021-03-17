@@ -35,10 +35,10 @@ jobs:
         ls -d */
         pip install .
 
-    - name: Run Blob behave tests
-      run: |
-        cd "/home/runner/work/AzureStorageWrapper/AzureStorageWrapper/test"
-        behave --tags=@blob_wrapper_functions -D tenant_id=${{ secrets.tenantId }} -D vault_url=${{ secrets.vaultURL }} -D app_id=${{ secrets.appId }} -D app_key=${{ secrets.appKey }} -D storage_account_name=${{ secrets.storageAccountName }} --no-capture
+    # - name: Run Blob behave tests
+    #   run: |
+    #     cd "/home/runner/work/AzureStorageWrapper/AzureStorageWrapper/test"
+    #     behave --tags=@blob_wrapper_functions -D tenant_id=${{ secrets.tenantId }} -D vault_url=${{ secrets.vaultURL }} -D app_id=${{ secrets.appId }} -D app_key=${{ secrets.appKey }} -D storage_account_name=${{ secrets.storageAccountName }} --no-capture
         
     - name: Run FileShare behave tests
       run: |
