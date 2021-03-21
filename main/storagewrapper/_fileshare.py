@@ -181,9 +181,9 @@ class FileShareFunctions:
         try:
             share_directory_client = self._get_directory_client(share_name, directory_path)
 
-            status = share_directory_client.create_directory()
+            share_directory_client.create_directory()
 
-            return status
+            return True
 
         except Exception as e:
             
