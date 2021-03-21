@@ -44,7 +44,7 @@ def create_new_file_share(context, share):
 
 @when("a {directory} is created in {share}")
 def create_directory_in_share(context, directory, share):
-    status = context.fileshare_functions.create_fileshare_directory(file_share_name=share, directory_path=directory)
+    status = context.fileshare_functions.create_fileshare_directory(share_name=share, directory_path=directory)
 
     assert status is True
 
