@@ -191,7 +191,7 @@ class FileShareFunctions:
 
             return status
 
-    def create_share(self, share_name, quota=1073741824, access_tier="Hot", metadata=None, timeout=10):
+    def create_share(self, share_name, quota=1, access_tier="Hot", metadata=None, timeout=10):
         """
         Creates a file share within the initiated storage account
 
