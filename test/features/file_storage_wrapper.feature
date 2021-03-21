@@ -13,5 +13,5 @@ Feature: File storage functionality
         When a <file> is uploaded to <share> in <directory>
         Then <file> and <directory> are found in <share>
         Examples:
-            | authentication_method | share       | directory |
-            | client_secret         | test-share  | toplevel  |
+            | authentication_method | share       | directory | file    |
+            | client_secret         | test-share  | toplevel  | test.txt|
