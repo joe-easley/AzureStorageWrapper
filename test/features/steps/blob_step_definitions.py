@@ -69,7 +69,7 @@ def delete_newly_uploaded_blob(context, container):
     assert blob_deleted is True
 
 
-@then("{container} is deleted")
+@then("blob {container} is deleted")
 def delete_new_container(context, container):
     container_deleted = context.blob_functions.delete_container(container_name=container)
     assert container_deleted is True

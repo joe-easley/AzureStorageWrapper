@@ -109,7 +109,7 @@ def delete_path_recursively(context, recursive_path, share):
 
     assert delete_dir_status
 
-@then("{share} is deleted")
+@then("FS {share} is deleted")
 def delete_file_share(context, share):
     delete_share_status = context.fileshare_functions.delete_share(share_name=share)
     assert delete_share_status

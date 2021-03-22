@@ -16,7 +16,7 @@ Feature: File storage functionality
         Then <file> is deleted from <directory> in <share>
         Then <directory> is deleted from <share>
         Then <recursive_path> is deleted recursively from <share>
-        Then <share> is deleted
+        Then FS <share> is deleted
         Examples:
             | authentication_method | share       | directory | file    | recursive_path          |
             | client_secret         | test-share  | toplevel  | test.txt| topdir/middir/bottomdir |
