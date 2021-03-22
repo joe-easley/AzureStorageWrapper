@@ -168,7 +168,7 @@ class FileShareFunctions:
 
             return status
 
-    def create_fileshare_directory(self, share_name, directory_path):
+    def create_fileshare_directory(self, share_name, directory_path, recursive=False):
         """Creates a new directory under the directory referenced by the client..
 
         Args:
@@ -176,14 +176,30 @@ class FileShareFunctions:
             directory_path (str): Name of directory to create, including the path to the parent directory
 
         Returns:
-            Directory-updated property dict (Etag and last modified).
+            True if successful.
         """
         try:
-            share_directory_client = self._get_directory_client(share_name, directory_path)
+            if not recursive:
+                
+                share_directory_client = self._get_directory_client(share_name, directory_path)
 
-            share_directory_client.create_directory()
+                share_directory_client.create_directory()
 
-            return True
+                return True
+
+            elif recursive:
+
+                path = ""
+                directories = directory_path.split("/")
+
+                for directory in directories:
+                    path = f"{path}/{directory}"
+                    path = path[1:]
+                    
+                    share_directory_client = self._get_directory_client(share_name, path)
+                    share_directory_client.create_directory()
+                
+                return True
 
         except Exception as e:
             
@@ -306,14 +322,14 @@ class FileShareFunctions:
 
             return status
     
-    def delete_directory(self, share_name, directory_name):
+    def delete_directory(self, share_name, directory_name, recursive=False, delete_files=False, timeout=10):
         """Deletes the specified empty directory. Note that the directory must be empty before it can be deleted.
         Attempting to delete directories that are not empty will fail.
+        Can delete all folders below specified directory recursively
 
         Args:
             share_name (str): Name of existing share.
-            directory_name ([str): Name of directory to delete, including the path to the parent directory.
-            fail_not_exist (bool, optional): Specify whether to throw an exception when the directory doesn't exist. Defaults to False.
+            directory_name (str): Name of directory to delete, including the path to the parent directory.
             timeout (int, optional): expressed in seconds. Defaults to 20.
 
         Returns:
@@ -321,11 +337,33 @@ class FileShareFunctions:
         """
 
         try:
+            if recursive:
 
-            directory_client = self._get_directory_client(share_name, directory_name)
-            directory_client.delete_directory()
+                self.files = []
+                self.directories = []
 
-            return True
+                self.__recursively_generate_list_of_files_and_dirs(self, share_name, directory_name)
+                
+                if delete_files:
+
+                    for file in self.files:
+
+                        self.delete_file(share_name=share_name, file_path=file)
+
+                
+                for directory in self.directories:
+
+                    directory_client = self._get_directory_client(share_name, directory)
+                    directory_client.delete_directory(timeout)
+                
+                return True
+            
+            elif not recursive:
+
+                directory_client = self._get_directory_client(share_name, directory_name)
+                directory_client.delete_directory(timeout)
+
+                return True
 
         except Exception as e:
             
@@ -355,13 +393,15 @@ class FileShareFunctions:
 
             return status
 
-    def delete_files(self, share_name, directory_name, file_names, recursive=False):
-        """Deletes multiple files. If recursive is selected then all files within the specified directory and below will be deleted.
+    def delete_files(self, share_name, directory_name, file_names, recursive=False, delete_directory=True):
+        """Deletes multiple files. If recursive is selected then all files within the specified directory and below will be deleted, 
+        default behaviour for recursive deletion is for directories to also be removed, can be controlled with delete_directories.
 
         Args:
             share_name ([str]): Name of the share
             file_names (list)
             recursive (bool, optional): True will recursively delete all files and folders below parent directory. Defaults to False.
+            delete_directory(bool, optional): True will delete folders during a recursive deletion. Defaults to False
         """
 
         try:
@@ -376,8 +416,13 @@ class FileShareFunctions:
                 for file in self.files:
                     self.delete_file(share_name=share_name, file_path=file)
                 
-                for directory in self.directories:
-                    self.delete_directory(share_name=share_name, directory_name=directory)
+                if delete_directory:
+
+                    for directory in self.directories:
+
+                        self.delete_directory(share_name=share_name, directory_name=directory)
+                
+                return True
 
             elif not recursive:
                 
@@ -386,6 +431,8 @@ class FileShareFunctions:
                     file_path = f"{directory_name}/{file}"
 
                     self.delete_file(share_name=share_name, file_path=file_path)
+
+                return True
 
             else:
 

@@ -10,8 +10,13 @@ Feature: File storage functionality
         And FileShareFunctions has been instantiated with all permissions
         When file<share> is called for creation
         When a <directory> is created in <share>
+        When a <recursive_path> directory is created in <share>
         When a <file> is uploaded to <share> in <directory>
         Then <file> and <directory> are found in <share>
+        Then <file> is deleted from <directory> in <share>
+        Then <directory> is deleted from <share>
+        Then <recursive_path> is deleted recursively from <share>
+        Then <share> is deleted
         Examples:
-            | authentication_method | share       | directory | file    |
-            | client_secret         | test-share  | toplevel  | test.txt|
+            | authentication_method | share       | directory | file    | recursive_path          |
+            | client_secret         | test-share  | toplevel  | test.txt| topdir/middir/bottomdir |

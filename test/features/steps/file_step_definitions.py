@@ -47,6 +47,12 @@ def create_directory_in_share(context, directory, share):
 
     assert status is True
 
+@when("a {recursive_path} directory is created in {share}")
+def create_directory_recursively(context, recursive_path, share):
+    status = context.fileshare_functions.create_fileshare_directory(share_name=share, directory_path=recursive_path, recursive=True)
+
+    assert status is True
+
 @when("a {file} is uploaded to {share} in {directory}")
 def upload_file_to_new_share(context, file, share, directory):
     path_to_file = f"{os.getcwd()}/data/{context.file_name}"
@@ -61,7 +67,6 @@ def check_dirs(context, share, directory):
     dirs = context.fileshare_functions.list_directories_and_files(share)
     for folder in dirs:
         if folder['name'] == directory:
-            print(folder['name'])
             return True
     return False
 
@@ -69,12 +74,41 @@ def check_files(context, share, directory, file_name):
     files = context.fileshare_functions.list_directories_and_files(share_name=share, directory_name=directory)
     for file in files:
         if file['name'] == file_name:
-            print(file['name'])
             return True
     return False
 
 @then('{file} and {directory} are found in {share}')
 def check_files_and_dirs_exist(context, file, directory, share):
     dir_status = check_dirs(context, share, directory)
+    print(f"Directory exists: {dir_status}")
+
     file_status = check_files(context, share, directory, file_name=file)
+    print(f"File exists: {file_status}")
+
     assert dir_status and file_status
+
+@then("{file} is deleted from {directory} in {share}")
+def delete_file_from_share(context, file, directory, share):
+    file_path = f"{directory}/{file}"
+
+    delete_status = context.fileshare_functions.delete_file(share_name=share, file_path=file_path)
+    print(f"{file} has been deleted from {directory}: {delete_status}")
+
+    assert delete_status
+
+@then("{directory} is deleted from {share}")
+def delete_directory_from_share(context, directory, share):
+    delete_dir_status = context.fileshare_functions.delete_directory(share_name=share, directory_name=directory)
+    print(f"{directory} has been deleted from {share}")
+
+    assert delete_dir_status
+
+@then("{recursive_path} is deleted recursively from {share}")
+def delete_path_recursively(context, recursive_path, share):
+    delete_dir_status = context.fileshare_functions.delete_directory(share_name=share, directory_name=recursive_path, recursive=True)
+
+    assert delete_dir_status
+
+@then("{share} is deleted")
+def delete_file_share(context, share):
+    delete_share_status = context.fileshare_functions.delete_share(share_name=share)
