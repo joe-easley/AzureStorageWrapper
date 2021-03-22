@@ -79,7 +79,7 @@ class BlobFunctions:
             blob_service_client = self.__create_blob_service_client()
 
             udk = blob_service_client.get_user_delegation_key(key_start_time=datetime.utcnow(),
-                                                              key_expiry_time=datetime.utcnow() + timedelta(hours=self.sas_duration))
+                                                              key_expiry_time=datetime.utcnow() + self.sas_duration)
 
             sas_token = generate_container_sas(
                 account_name=self.storage_account_name,

@@ -103,12 +103,12 @@ class AuthenticateFunctions:
                 add = container_permissions["add"]
                 create = container_permissions["create"]
                 write = container_permissions["write"]
-                delete= container_permissions["delete"]
+                delete = container_permissions["delete"]
                 delete_previous_version = container_permissions["delete_previous_version"]
                 tag = container_permissions["tag"]
 
                 return ContainerSasPermissions(read=read, add=add, create=create, write=write, delete=delete, 
-                                                                        delete_previous_version=delete_previous_version, tag=tag)
+                                               delete_previous_version=delete_previous_version, tag=tag)
             except KeyError:
 
                 raise AuthenticationError("If specifying container SAS permissions all permissions status must be provided")
@@ -145,9 +145,9 @@ class AuthenticateFunctions:
                 filter_by_tags = fileshare_permissions["filter_by_tags"]
 
                 return AccountSasPermissions(read=read, write=write, delete=delete, list=list_files, 
-                                                                        add=add, create=create, update=update, process=process, 
-                                                                        delete_previous_version=delete_previous_version, tag=tag, 
-                                                                        filter_by_tags=filter_by_tags)
+                                             add=add, create=create, update=update, process=process, 
+                                             delete_previous_version=delete_previous_version, tag=tag, 
+                                             filter_by_tags=filter_by_tags)
             except KeyError:
 
                 raise AuthenticationError("If specifying container SAS permissions all permissions status must be provided")
