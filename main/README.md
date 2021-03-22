@@ -89,7 +89,7 @@ The BlobFunctions class must be initiated by passing an authentication credentia
 
 Asterisk denotes optional parameter
 
-    BlobFunctions(token, storage_account_name, sas_duration*, sas_permissions*, sas_method*, vault_url*, access_key_secret_name*, handle_exceptions*)
+    BlobFunctions(storage_account_name, authenticator, sas_method*, vault_url*, access_key_secret_name*, handle_exceptions*)
 
  They have the following methods:
 
@@ -115,35 +115,41 @@ Lists all blobs in a specified container. Returns a list
 
 The FileShareFunctions class must be initiated as above (see authentication section). After that the following methods may be called:
 
-- Create Directory
-
-    create_fileshare_directory(share_name, directory_path)
-
-Creates a directory in chosen file share. Returns Directory-updated property dict (Etag and last modified).
-
 - Copy File
 
     copy_file(share_name, file_path, source_url)
 
 Copies a file from blob or other file share to a specified share machine. On completion returns a [FileProperties](https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.fileproperties?view=azure-python) object
 
+- Create Directory
+
+    create_fileshare_directory(share_name, directory_path, recursive*)
+
+Creates a directory in chosen file share. Returns True if successful. If recursive=True then will allow for recursive directory creation eg topdir/middledir/bottomdir would be created.
+
 - Create new File Share
 
-    create_share(share_name, metadata=None, quota=1, timeout=10, share_service_client=None)
+    create_share(share_name, quota*=1*, access_tier*, metadata*, timeout*)
 
 Creates a new share in storage_account
 
 - Delete directory
 
-    delete_directory(share_name, directory_name)
+    delete_directory(share_name, directory_name, recursive, delete_files)
 
-Deletes the specified empty directory. Note that the directory must be empty before it can be deleted. Attempting to delete directories that are not empty will fail.
+If recursive=False then deletes the specified empty directory. Note that the directory must be empty before it can be deleted. Attempting to delete directories that are not empty will fail.
+
+If recursive=True will recursively delete all directories below target directory, if delete_files=True then will delete all files encountered.
 
 - Delete File
 
     delete_file(share_name, file_name)
 
 Marks the specified file for deletion. The file is later deleted during garbage collection.
+
+- Delete Share
+  
+    delete_share
 
 - List directories and files on share
 
