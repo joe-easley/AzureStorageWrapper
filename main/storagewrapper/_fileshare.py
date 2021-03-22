@@ -180,7 +180,7 @@ class FileShareFunctions:
         """
         try:
             if not recursive:
-                
+
                 share_directory_client = self._get_directory_client(share_name, directory_path)
 
                 share_directory_client.create_directory()
@@ -394,7 +394,7 @@ class FileShareFunctions:
             return status
 
     def delete_files(self, share_name, directory_name, file_names, recursive=False, delete_directory=True):
-        """Deletes multiple files. If recursive is selected then all files within the specified directory and below will be deleted, 
+        """Deletes multiple files. If recursive is selected then all files within the specified directory and below will be deleted,
         default behaviour for recursive deletion is for directories to also be removed, can be controlled with delete_directories.
 
         Args:
