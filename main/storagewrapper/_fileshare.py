@@ -191,10 +191,14 @@ class FileShareFunctions:
 
                 path = ""
                 directories = directory_path.split("/")
-                print(directories)
-                for directory in directories:
+                path = directories[0]
+
+                share_directory_client = self._get_directory_client(share_name, path)
+                share_directory_client.create_directory()
+
+                for directory in directories[1:]:
                     path = f"{path}/{directory}"
-                    path = path[1:]
+                    
                     print(path)
                     
                     share_directory_client = self._get_directory_client(share_name, path)
