@@ -22,7 +22,7 @@ def set_up_params(context):
 def generate_credential(context, authentication_method):
 
     context.params["authentication_method"] = authentication_method
-    context.token = AuthenticateFunctions(context.params).token
+    context.authenticator = AuthenticateFunctions(context.params)
 
 
     assert context.token is not None
@@ -30,7 +30,7 @@ def generate_credential(context, authentication_method):
 
 @given("BlobFunctions has been instantiated with all permissions")
 def instantiate_blob_functions(context):
-    context.blob_functions = BlobFunctions(token=context.token, storage_account_name=context.storage_account_name)
+    context.blob_functions = BlobFunctions(authenticator=context.authenticator, storage_account_name=context.storage_account_name)
 
 
 @when("a {container} is created")

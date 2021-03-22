@@ -21,15 +21,15 @@ def set_up_params(context):
 def generate_credential(context, authentication_method):
 
     context.params["authentication_method"] = authentication_method
-    context.token = AuthenticateFunctions(context.params).token
+    context.authenticator = AuthenticateFunctions(context.params)
 
     assert context.token is not None
 
 
 @given("FileShareFunctions has been instantiated with all permissions")
 def instantiate_blob_functions(context):
-    context.fileshare_functions = FileShareFunctions(token=context.token, storage_account_name=context.storage_account_name,
-                                                     sas_duration=2, vault_url=context.vault_url,
+    context.fileshare_functions = FileShareFunctions(authenticator=context.authenticator, storage_account_name=context.storage_account_name,
+                                                     vault_url=context.vault_url,
                                                      secret_name="fileshareaccesskey")
     assert context.fileshare_functions is not None
 
