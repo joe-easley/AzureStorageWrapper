@@ -1,5 +1,6 @@
 # AzureStorageWrapper
 [![Actions Status](https://github.com/joe-easley/AzureStorageWrapper/workflows/Behave%20Tests/badge.svg)](https://github.com/joe-easley/AzureStorageWrapper/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 
 A wrapper for azure storage tools
