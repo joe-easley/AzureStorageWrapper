@@ -1,10 +1,11 @@
 # AzureStorageWrapper
-![Behave Tests](https://github.com/joe-easley/AzureStorageWrapper/workflows/Behave%20Tests/badge.svg?branch=main)
 
+![Behave Tests](https://github.com/joe-easley/AzureStorageWrapper/workflows/Behave%20Tests/badge.svg?branch=main)
 
 A wrapper for azure storage tools.
 
 Tests currently failing due to azure test account being temporarily unavailable. Blob functions and most file functions have been recently tested and are working as expected.
+
 ## Setup
 
 To run functions you must authenticate. The Authentication module (below) can do this, though if you have a [token credential object](https://docs.microsoft.com/en-us/python/api/azure-identity/azure.identity?view=azure-python) then you can pass this directly to the storage functions classes and bypass the Authentication module.
@@ -13,8 +14,31 @@ To run functions you must authenticate. The Authentication module (below) can do
 
 To use the azure storage functions you must first authenticate.
 
-The token is stored as an instance variable so could be accessed as: 
-    token = AuthenticateFunctions(params).token
+An instantiated AuthenticateFunctions class object will provide the authorisation necessary to run BlobFunctions and FileShareFunctions. When one of the methods belonging to BlobFunctions or FileShareFunctions is run, it will generate a SAS token to create, update or delete resources. If left unspecified, the SAS that is generated resorts to *most permissive*. This is order for this library to be as user friendly to use as possible, however it is *strongly* recommended that you specify what permissions the SAS will allow. For more information on [Blob](https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.containersaspermissions?view=azure-python) and [FileShare](https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.accountsaspermissions?view=azure-python) SAS permissions.
+
+The SAS duration will default to 1 hour unless otherwise specified, this can be overridden as below.
+
+    sas_permissions = {"container_permissions":
+                            {"read": True,
+                             "write": True,
+                             "delete": True,
+                             "delete_previous_version": True,
+                             "list":True,
+                             "tag": True},
+                        "file_permissions":
+                            {"read": True,
+                             "write": True,
+                             "delete": True,
+                             "delete_previous_version": True,
+                             "list": True,
+                             "add": True,
+                             "create": True,
+                             "update": True,
+                             "process": True,
+                             "tag": True,
+                             "filter_by_tags": True}
+                      }
+    sas_duration = 1
 
 There are currently two ways of authorising access.
 
@@ -27,11 +51,13 @@ If you have access as user to an azure storage resource then you can authenticat
     params = {"authentication_method": "user",
               "client_id": "XXXX",
               "username": "joebloggs@microsoft.com",
-              "password": "password123"}
+              "password": "password123",
+              "sas_permissions": sas_permissions,
+              "sas_duration": sas_duration}
     
-    token = AuthenticateFunctions(params).token
+    authenticator = AuthenticateFunctions(params)
 
-2. As a service principal
+1. As a service principal
 
 You can use a service principal to authenticate access. You can do this by assigning the value "client_secret" to the authentication key in the params dictionary. If using this method you must also add tenant_id, app_id and app_key as key-value pairs to the param dictionary.
 
@@ -40,24 +66,25 @@ You can use a service principal to authenticate access. You can do this by assig
     params = {"authentication_method": "user",
               "client_id": "XXXX",
               "app_id": "applicationId",
-              "app_key": "applicationKey"}
+              "app_key": "applicationKey",
+              "sas_permissions": sas_permissions,
+              "sas_duration": sas_duration}
     
-    token = AuthenticateFunctions(params).token
-
+    authenticator = AuthenticateFunctions(params)
 
 Further authentication is required for using the FileShareFunctions. FileShareFunctions uses an account key to generate an account sas token. This library requires this account key to either be given as an argument during instantiation, or vault url and secret name given so that this secret can be retrieved. More information below.
 
+BlobFunctions and FileShareFunctions are
 
-# Supported storage functions
+## Supported storage functions
 
-## Blob
+### Blob
 
 The currently supported operations on blob storage use the BlobFunctions class.
 
 The BlobFunctions class must be initiated by passing an authentication credential and a sas duration.
 
 Asterisk denotes optional parameter
-
 
     BlobFunctions(token, storage_account_name, sas_duration*, sas_permissions*, sas_method*, vault_url*, access_key_secret_name*, handle_exceptions*)
 
@@ -81,7 +108,7 @@ Deletes a specified blob. Arguments must be passed as a string
 
 Lists all blobs in a specified container. Returns a list
 
-## FileShare
+### FileShare
 
 The FileShareFunctions class must be initiated as above (see authentication section). After that the following methods may be called:
 
@@ -133,7 +160,8 @@ Returns list of shares in storage account
 
 Uploads a file to a file share
 
-## Currently unsupported FileShare operations
+### Currently unsupported FileShare operations
+
 If there are other fileshare operations that are unsupported by this wrapper then you can generate the following clients to interact with them:
 
 - [create_share_service_client()](https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.shareserviceclient?view=azure-python)
@@ -152,9 +180,9 @@ This method will allow access to any of the the ShareClient class methods
 
 This method will allow access to any of the the ShareFileClient class methods
 
-## Queue
+### Queue
 
-Queue operations use the QueueFunctions class. This can be instantiated by at a minimum passing an authentication token and storage account name. 
+Queue operations use the QueueFunctions class. This can be instantiated by at a minimum passing an authentication token and storage account name.
 
     QueueFunctions(token, storage_account_name)
 
@@ -199,7 +227,7 @@ Deletes a queue and all contained messages. Operation takes 40 secs or more so a
 
 - list_queues()
 Returns a generator to list queues under specified storage account.
-Optional params: 
+Optional params:
     name_starts_with(str)
     include_metadate(Bool)
     results_per_page(int)
