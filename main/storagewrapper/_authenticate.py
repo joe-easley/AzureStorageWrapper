@@ -101,13 +101,12 @@ class AuthenticateFunctions:
 
                 read = container_permissions["read"]
                 write = container_permissions["write"]
-                create = container_permissions["create"]
                 delete = container_permissions["delete"]
                 delete_previous_version = container_permissions["delete_previous_version"]
                 list_blob = container_permissions["list"]
                 tag = container_permissions["tag"]
 
-                return ContainerSasPermissions(read=read, write=write, create=create, delete=delete, 
+                return ContainerSasPermissions(read=read, write=write, delete=delete, 
                                                delete_previous_version=delete_previous_version, list=list_blob, tag=tag)
             except KeyError:
 
@@ -115,12 +114,12 @@ class AuthenticateFunctions:
         
         elif "container_permission" not in permissions:
 
-            return ContainerSasPermissions(read=True, write=True, create=True, delete=True, 
-                                           delete_previous_version=True, tag=True)
+            return ContainerSasPermissions(read=True, write=True, delete=True, 
+                                           delete_previous_version=True, list=True, tag=True)
     
     def __default_container_sas_permissions(self):
-        return ContainerSasPermissions(read=True, write=True, create=True, delete=True, 
-                                       delete_previous_version=True, tag=True)
+        return ContainerSasPermissions(read=True, write=True, delete=True, 
+                                       delete_previous_version=True, list=True, tag=True)
 
     def __define_fileshare_sas_permissions(self):
         
