@@ -164,7 +164,7 @@ class AuthenticateFunctions:
                                      delete_previous_version=True, tag=True, filter_by_tags=True)
 
     def __define_sas_duration(self):
-        if ["sas_duration"] in self.params:
+        if "sas_duration" in self.params:
             sas_duration = timedelta(hours=self.params["sas_duration"])
             return sas_duration
         
