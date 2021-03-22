@@ -361,14 +361,14 @@ class FileShareFunctions:
                 for directory in self.directories:
 
                     directory_client = self._get_directory_client(share_name, directory)
-                    directory_client.delete_directory({"timeout": timeout})
+                    directory_client.delete_directory(timeout=timeout)
                 
                 return True
             
             elif not recursive:
 
                 directory_client = self._get_directory_client(share_name, directory_name)
-                directory_client.delete_directory({"timeout": timeout})
+                directory_client.delete_directory(timeout=timeout)
 
                 return True
 
