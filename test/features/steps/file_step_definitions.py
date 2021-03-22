@@ -14,8 +14,7 @@ def set_up_params(context):
     context.file_name = "blob.txt"
     context.params = {"client_id": context.tenant_id,
                       "app_id": context.app_id,
-                      "app_key": context.app_key,
-                      "vault_backed": False}
+                      "app_key": context.app_key}
 
 
 @given("credential is generated with {authentication_method} for fileshare")

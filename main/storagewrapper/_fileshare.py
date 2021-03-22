@@ -69,7 +69,7 @@ class FileShareFunctions:
                 account_name=self.storage_account_name,
                 account_key=secret,
                 resource_types=ResourceTypes(service=True, container=True, object=True),
-                permission=AccountSasPermissions(read=True, write=True, create=True),
+                permission=AccountSasPermissions(read=True, write=True, create=True, list=True),
                 expiry=datetime.utcnow() + timedelta(hours=self.sas_duration)
             )
 
