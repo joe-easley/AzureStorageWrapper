@@ -6,7 +6,6 @@ import os
 @given("parameters are set up for fileshare")
 def set_up_params(context):
     context.tenant_id = context.config.userdata.get("tenant_id")
-    print(context.tenant_id)
     context.vault_url = context.config.userdata.get("vault_url")
     context.app_id = context.config.userdata.get("app_id")
     context.app_key = context.config.userdata.get("app_key")
