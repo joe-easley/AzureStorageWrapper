@@ -1,6 +1,6 @@
 from azure.storage.blob import BlobServiceClient, generate_container_sas, ContainerSasPermissions, BlobClient
 from azure.keyvault.secrets import SecretClient
-from datetime import datetime, timedelta
+from datetime import datetime
 from storagewrapper._exceptions import BlobFunctionsError
 
 import sys
@@ -11,10 +11,8 @@ class BlobFunctions:
     A wrapper on blob storage functions
 
     Args:
-        token(TokenCredentialsClass obj): A token from the authentication module
+        authenticator(AuthenticateFunctions class): provides authentication to service blob functions
         storage_account_name(str): Name of the storage account
-        sas_duration(int, Optional): Controls how long a container sas is valid for. Defaults to 1 hour
-        sas_permissions(dict, Optional): Controls what permissions a SAS has. Defaults to read, write, list and delete permissions.
         sas_method (str, optional): Controls whether a user delegation key is used to generate SAS or whether an access key stored in key vault is used. If access key then vault_url, access_key_secret_name must be provided. Defaults to UserDelegationKey.
         handle_exceptions (bool, optional): If True exceptions raised are handled silently and passed back as a message in the return, if False raises an exception. Default is False
     
@@ -25,11 +23,12 @@ class BlobFunctions:
 
     """
 
-    def __init__(self, token, storage_account_name, sas_duration=1, sas_permissions=None, sas_method="UserDelegationKey", vault_url=None, access_key_secret_name=None, handle_exceptions=False):
-        self.token = token
+    def __init__(self, storage_account_name, authenticator, sas_method="UserDelegationKey", vault_url=None, access_key_secret_name=None, handle_exceptions=False):
+        self.authenticator = authenticator
+        self.token = self.authenticator.token
         self.storage_account_name = storage_account_name
-        self.sas_duration = sas_duration
-        self.sas_permissions = sas_permissions
+        self.sas_duration = self.authenticator.sas_duration
+        self.sas_permissions = self.authenticator.container_sas_permissions
         self.sas_method = sas_method
         self.vault_url = vault_url
         self.access_key_secret_name = access_key_secret_name
@@ -74,7 +73,6 @@ class BlobFunctions:
         Returns:
             str: SAS token
         """
-        csp = self.__define_sas_permissions()
 
         if self.sas_method == "UserDelegationKey":
 
@@ -87,8 +85,8 @@ class BlobFunctions:
                 account_name=self.storage_account_name,
                 container_name=container_name,
                 user_delegation_key=udk,
-                permission=csp,
-                expiry=datetime.utcnow() + timedelta(hours=self.sas_duration)
+                permission=self.sas_permissions,
+                expiry=datetime.utcnow() + self.sas_duration
             )
 
             return sas_token
@@ -101,8 +99,8 @@ class BlobFunctions:
                 account_name=self.storage_account_name,
                 container_name=self.container_name,
                 account_key=access_key,
-                permission=csp,
-                expiry=datetime.utcnow() + timedelta(hours=self.sas_duration)
+                permission=self.sas_permissions,
+                expiry=datetime.utcnow() + self.sas_duration
             )
 
             return sas_token
@@ -121,25 +119,6 @@ class BlobFunctions:
         secret = secret_client.get_secret(self.access_key_secret_name)
 
         return secret.value
-
-    def __define_sas_permissions(self):
-
-        if self.sas_permissions is None:
-
-            permissions = ContainerSasPermissions(read=True, write=True, delete=True, list=True)
-
-            return permissions
-
-        else:
-            read_permissions = self.sas_permissions["read"]
-            write_permissions = self.sas_permissions["write"]
-            delete_permissions = self.sas_permissions["delete"]
-            list_permissions = self.sas_permissions["list"]
-
-            permissions = ContainerSasPermissions(read=read_permissions, write=write_permissions,
-                                                  delete=delete_permissions, list=list_permissions)
-
-            return permissions
 
     def __create_blob_client_from_url(self, blob_name, container_name):
         """

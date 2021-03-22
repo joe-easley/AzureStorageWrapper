@@ -1,6 +1,6 @@
 from azure.keyvault.secrets import SecretClient
 from azure.storage.fileshare import generate_account_sas, ResourceTypes, AccountSasPermissions, ShareServiceClient, ShareClient, ShareDirectoryClient, ShareAccessTier
-from datetime import datetime, timedelta
+from datetime import datetime
 from storagewrapper._exceptions import FileShareFunctionsError, InitialisationError
 import sys
 
@@ -16,20 +16,22 @@ class FileShareFunctions:
 
         Args:
             storage_account_name (str): Name of the storage account
-            sas_duration (str, optional): This module creates SAS tokens on the fly for certain storage operations. Set the duration (in hours) here, minimum 1 hour. Default is 1 hour.
             storage_account_access_key (str, optional): Access key that will authenticate operations of this library
             vault_url (str, optional): URL of key vault in which account access key is stored
             secret_name (str, optional): Name of the access key secret which is stored in key vault
             token(token obj, optional): Credential created in AuthenticateFunctions
     """
 
-    def __init__(self, storage_account_name, sas_duration=1, storage_account_access_key=None, vault_url=None, secret_name=None, token=None, handle_exceptions=False):
+    def __init__(self, storage_account_name, authenticator, storage_account_access_key=None, vault_url=None, secret_name=None, handle_exceptions=False):
         self.storage_account_name = storage_account_name
-        self.sas_duration = sas_duration
+        self.authenticator = authenticator
+        self.sas_duration = self.authenticator.sas_duration
+        self.token = self.authenticator.token
+        self.sas_permissions = self.authenticator.fileshare_sas_permissions
         self.storage_account_access_key = storage_account_access_key
         self.vault_url = vault_url
         self.secret_name = secret_name
-        self.token = token
+        
         self.handle_exceptions = handle_exceptions
         
     def __str__(self):
@@ -69,8 +71,8 @@ class FileShareFunctions:
                 account_name=self.storage_account_name,
                 account_key=secret,
                 resource_types=ResourceTypes(service=True, container=True, object=True),
-                permission=AccountSasPermissions(read=True, write=True, create=True, list=True),
-                expiry=datetime.utcnow() + timedelta(hours=self.sas_duration)
+                permission=self.sas_permissions,
+                expiry=datetime.utcnow() + self.sas_duration
             )
 
             return fs_sas_token
@@ -81,8 +83,8 @@ class FileShareFunctions:
                 account_name=self.storage_account_name,
                 account_key=self.storage_account_access_key,
                 resource_types=ResourceTypes(service=True, container=True, object=True),
-                permission=AccountSasPermissions(read=True, write=True, create=True, list=True),
-                expiry=datetime.utcnow() + timedelta(hours=self.sas_duration)
+                permission=self.sas_permissions,
+                expiry=datetime.utcnow() + self.sas_duration
             )
 
             return fs_sas_token

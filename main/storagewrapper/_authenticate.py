@@ -1,5 +1,8 @@
+from azure.storage.blob import ContainerSasPermissions
+from azure.storage.fileshare import AccountSasPermissions
 from azure.identity import ClientSecretCredential, UsernamePasswordCredential
 from azure.keyvault.secrets import SecretClient
+from datetime import timedelta
 from storagewrapper._exceptions import AuthenticationError
 
 
@@ -33,6 +36,17 @@ class AuthenticateFunctions:
     def __init__(self, params):
         self.params = params
         self.token = self.__generate_credential()
+        
+        if "sas_permissions" in self.params:
+
+            self.container_sas_permissions = self.__define_container_sas_permissions()
+            self.fileshare_sas_permissions = self.__define_fileshare_sas_permissions()
+        
+        elif "sas_permissions" not in self.params:
+            self.container_sas_permissions = self.__default_container_sas_permissions()
+            self.fileshare_sas_permissions = self.__default_fileshare_sas_permissions()
+        
+        self.sas_duration = self.__define_sas_duration()
 
     def __generate_client_secret_credential(self, tenant_id, app_id, app_key):
         """
@@ -74,6 +88,90 @@ class AuthenticateFunctions:
             raise Exception(e)
 
         return token_credential
+
+    def __define_container_sas_permissions(self):
+        
+        permissions = self.params["sas_permissions"]
+
+        if "container_permissions" in permissions:
+            
+            try:
+
+                container_permissions = permissions["container_permissions"]
+
+                read = container_permissions["read"]
+                add = container_permissions["add"]
+                create = container_permissions["create"]
+                write = container_permissions["write"]
+                delete= container_permissions["delete"]
+                delete_previous_version = container_permissions["delete_previous_version"]
+                tag = container_permissions["tag"]
+
+                return ContainerSasPermissions(read=read, add=add, create=create, write=write, delete=delete, 
+                                                                        delete_previous_version=delete_previous_version, tag=tag)
+            except KeyError:
+
+                raise AuthenticationError("If specifying container SAS permissions all permissions status must be provided")
+        
+        elif "container_permission" not in permissions:
+
+            return ContainerSasPermissions(read=True, add=True, create=True, write=True, 
+                                           delete=True, delete_previous_version=True, tag=True)
+    
+    def __default_container_sas_permissions(self):
+        return ContainerSasPermissions(read=True, add=True, create=True, write=True, 
+                                       delete=True, delete_previous_version=True, tag=True)
+
+    def __define_fileshare_sas_permissions(self):
+        
+        permissions = self.params["sas_permissions"]
+
+        if "file_permisisons" in permissions:
+            
+            try:
+
+                fileshare_permissions = permissions["file_permissions"]
+
+                read = fileshare_permissions["read"]
+                write = fileshare_permissions["write"]
+                delete = fileshare_permissions["delete"]
+                delete_previous_version = fileshare_permissions["delete_previous_version"]
+                list_files = fileshare_permissions["list"]
+                add = fileshare_permissions["add"]
+                create = fileshare_permissions["create"]
+                update = fileshare_permissions["update"]
+                process = fileshare_permissions["process"]
+                tag = fileshare_permissions["tag"]
+                filter_by_tags = fileshare_permissions["filter_by_tags"]
+
+                return AccountSasPermissions(read=read, write=write, delete=delete, list=list_files, 
+                                                                        add=add, create=create, update=update, process=process, 
+                                                                        delete_previous_version=delete_previous_version, tag=tag, 
+                                                                        filter_by_tags=filter_by_tags)
+            except KeyError:
+
+                raise AuthenticationError("If specifying container SAS permissions all permissions status must be provided")
+        
+        elif "file_permissions" not in permissions:
+
+            return AccountSasPermissions(read=True, write=True, delete=True, list=True, 
+                                         add=True, create=True, update=True, process=True, 
+                                         delete_previous_version=True, tag=True, 
+                                         filter_by_tags=True)
+
+    def __default_fileshare_sas_permissions(self):
+        return AccountSasPermissions(read=True, write=True, delete=True, list=True, 
+                                     add=True, create=True, update=True, process=True, 
+                                     delete_previous_version=True, tag=True, filter_by_tags=True)
+
+    def __define_sas_duration(self):
+        if ["sas_duration"] in self.params:
+            sas_duration = timedelta(hours=self.params["sas_duration"])
+            return sas_duration
+        
+        else:
+            sas_duration = timedelta(hours=1)
+            return sas_duration
 
     def __generate_credential(self):
         """
