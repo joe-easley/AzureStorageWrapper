@@ -18,26 +18,29 @@ An instantiated AuthenticateFunctions class object will provide the authorisatio
 
 The SAS duration will default to 1 hour unless otherwise specified, this can be overridden as below.
 
-    sas_permissions = {"container_permissions":
-                            {"read": True,
-                             "write": True,
-                             "delete": True,
-                             "delete_previous_version": True,
-                             "list":True,
-                             "tag": True},
+    sas_permissions = {
+                        "container_permissions":
+                            {
+                                "read": True,
+                                "write": True,
+                                "delete": True,
+                                "delete_previous_version": True,
+                                "list":True,
+                                "tag": True},
                         "file_permissions":
-                            {"read": True,
-                             "write": True,
-                             "delete": True,
-                             "delete_previous_version": True,
-                             "list": True,
-                             "add": True,
-                             "create": True,
-                             "update": True,
-                             "process": True,
-                             "tag": True,
-                             "filter_by_tags": True}
-                      }
+                            {
+                                "read": True,
+                                "write": True,
+                                "delete": True,
+                                "delete_previous_version": True,
+                                "list": True,
+                                "add": True,
+                                "create": True,
+                                "update": True,
+                                "process": True,
+                                "tag": True,
+                                "filter_by_tags": True}
+                             }
     sas_duration = 1
 
 There are currently two ways of authorising access.
