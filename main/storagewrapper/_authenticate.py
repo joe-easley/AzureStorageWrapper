@@ -100,27 +100,27 @@ class AuthenticateFunctions:
                 container_permissions = permissions["container_permissions"]
 
                 read = container_permissions["read"]
-                add = container_permissions["add"]
-                create = container_permissions["create"]
                 write = container_permissions["write"]
+                create = container_permissions["create"]
                 delete = container_permissions["delete"]
                 delete_previous_version = container_permissions["delete_previous_version"]
+                list_blob = container_permissions["list"]
                 tag = container_permissions["tag"]
 
-                return ContainerSasPermissions(read=read, add=add, create=create, write=write, delete=delete, 
-                                               delete_previous_version=delete_previous_version, tag=tag)
+                return ContainerSasPermissions(read=read, write=write, create=create, delete=delete, 
+                                               delete_previous_version=delete_previous_version, list=list_blob, tag=tag)
             except KeyError:
 
                 raise AuthenticationError("If specifying container SAS permissions all permissions status must be provided")
         
         elif "container_permission" not in permissions:
 
-            return ContainerSasPermissions(read=True, add=True, create=True, write=True, 
-                                           delete=True, delete_previous_version=True, tag=True)
+            return ContainerSasPermissions(read=True, write=True, create=True, delete=True, 
+                                           delete_previous_version=True, tag=True)
     
     def __default_container_sas_permissions(self):
-        return ContainerSasPermissions(read=True, add=True, create=True, write=True, 
-                                       delete=True, delete_previous_version=True, tag=True)
+        return ContainerSasPermissions(read=True, write=True, create=True, delete=True, 
+                                       delete_previous_version=True, tag=True)
 
     def __define_fileshare_sas_permissions(self):
         
