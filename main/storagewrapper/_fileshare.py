@@ -349,7 +349,7 @@ class FileShareFunctions:
                 self.files = []
                 self.directories = []
 
-                self.__recursively_generate_list_of_files_and_dirs(self, share_name, directory_name)
+                self.__recursively_generate_list_of_files_and_dirs(share_name, directory_name)
                 
                 if delete_files:
 
