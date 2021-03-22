@@ -47,7 +47,7 @@ def create_directory_in_share(context, directory, share):
 
     assert status is True
 
-@when("a {recursive_path} directory is created in FS {share}")
+@when("a {recursive_path} directory is created recursively in FS {share}")
 def create_directory_recursively(context, recursive_path, share):
     status = context.fileshare_functions.create_fileshare_directory(share_name=share, directory_path=recursive_path, recursive=True)
 
