@@ -61,13 +61,15 @@ def check_dirs(context, share, directory):
     dirs = context.fileshare_functions.list_directories_and_files(share)
     for folder in dirs:
         if folder['name'] == directory:
+            print(folder['name'])
             return True
     return False
 
 def check_files(context, share, directory, file_name):
     files = context.fileshare_functions.list_directories_and_files(share_name=share, directory_name=directory)
     for file in files:
-        if file['name'] == file:
+        if file['name'] == file_name:
+            print(file['name'])
             return True
     return False
 
