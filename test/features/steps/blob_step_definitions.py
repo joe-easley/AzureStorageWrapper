@@ -25,7 +25,7 @@ def generate_credential(context, authentication_method):
     context.authenticator = AuthenticateFunctions(context.params)
 
 
-    assert context.token is not None
+    assert context.authenticator is not None
 
 
 @given("BlobFunctions has been instantiated with all permissions")
