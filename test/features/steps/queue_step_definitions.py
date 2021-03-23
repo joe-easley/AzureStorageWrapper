@@ -30,3 +30,16 @@ def create_queue(context, queue_name):
     creation_status = context.queue_functions.create_queue(queue_name=queue_name)
 
     assert creation_status
+
+@then("a {message} is sent to the {queue_name}")
+def send_message_to_queue(context, message, queue_name):
+
+    message_status = context.queue_functions.send_message(content=message, queue_name=queue_name)
+
+    assert message_status
+
+@then("the {queue_name} is deleted")
+def delete_the_queue(context, queue_name):
+    delete_status = context.queue_functions.delete_queue(queue_name=queue_name)
+
+    assert delete_status

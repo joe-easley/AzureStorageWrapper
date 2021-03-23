@@ -174,22 +174,24 @@ class QueueFunctions:
 
             return status
 
-    def send_message(self, content, visibility_timeout=604800, time_to_live=604800, timeout=10):
+    def send_message(self, content, queue_name, visibility_timeout=604800, time_to_live=604800, timeout=10):
         """
         Sends a message to queue.
         Default time to live is 7 days, however this can be specified in seconds. Set to infinity with -1.
         visibility timeout specifies the time that the message will be invisible. After the timeout expires, the message will become visible. Defaults to 7 days
 
         param content: str
+        param queue_name: str
         param visibility_timeout: int
 
         return sent_message: QueueMessage object
         """
         try:
 
-            sent_message = self.queue_client.send_message(content=content, visibility_timeout=visibility_timeout, time_to_live=time_to_live, timeout=timeout)
+            queue_client = self._gen_queue_client(queue_name)
+            queue_client.send_message(content=content, visibility_timeout=visibility_timeout, time_to_live=time_to_live, timeout=timeout)
 
-            return sent_message
+            return True
 
         except Exception as e:
             
@@ -197,12 +199,13 @@ class QueueFunctions:
 
             return status
 
-    def update_message(self, message, pop_receipt, content, visibility_timeout=604800, timeout=10):
+    def update_message(self, message, queue_name, pop_receipt, content, visibility_timeout=604800, timeout=10):
         """
         Updates the visibility timeout of a message, or updates the content of a message
         Server timeout defaults to 10 seconds
 
         param message: str or QueueMessage
+        param queue_name: str
         param pop_receipt: str
         param content: str
         param visibility_timeout: int
@@ -212,7 +215,8 @@ class QueueFunctions:
         """
 
         try:
-            updated_message = self.queue_client.update_message(message, pop_receipt=pop_receipt, content=content)
+            queue_client = self._gen_queue_client(queue_name)
+            updated_message = queue_client.update_message(message, pop_receipt=pop_receipt, content=content)
 
             return updated_message
 
@@ -237,7 +241,7 @@ class QueueFunctions:
             queue_service_client = self._generate_queue_service_client()
             queue_service_client.delete_queue(queue=queue_name, timeout=timeout)
 
-            return None
+            return True
 
         except Exception as e:
             

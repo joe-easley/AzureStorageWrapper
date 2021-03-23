@@ -8,7 +8,9 @@ Feature: Queue storage functionality
         Given parameters are set up for queues
         And credential is generated with <authentication_method> for queue
         And a <queue_name> is created
+        Then a <message> is sent to <queue_name>
+        Then the <queue_name> is deleted
         Examples: 
-        | queue_name    | authentication_method |
-        | test-queue    | client_secret         |
+        | queue_name    | authentication_method | message      |
+        | test-queue    | client_secret         | test message |
         
