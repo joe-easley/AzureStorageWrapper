@@ -66,7 +66,7 @@ class QueueFunctions:
         return QueueServiceClient obj
         """
 
-        url = f"https://{self.storage_account_name}.blob.core.windows.net/"
+        url = f"https://{self.storage_account_name}.queue.core.windows.net/"
 
         queue_service_client = QueueServiceClient(account_url=url, credential=self.token)
 
