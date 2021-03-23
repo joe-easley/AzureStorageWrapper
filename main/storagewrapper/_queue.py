@@ -85,7 +85,7 @@ class QueueFunctions:
 
         return queue_client
 
-    def create_queue(self, name, metadata=None, timeout=10):
+    def create_queue(self, queue_name, metadata=None, timeout=10):
         """
         Creates a new queue in storage acct. Timeout value auto-set to 10seconds.
         Returns a queue client object for created queue
