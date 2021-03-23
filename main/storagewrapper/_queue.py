@@ -174,7 +174,7 @@ class QueueFunctions:
 
             return status
 
-    def send_message(self, content, queue_name, visibility_timeout=604800, time_to_live=604800, timeout=10):
+    def send_message(self, content, queue_name, visibility_timeout=604799, time_to_live=604800, timeout=10):
         """
         Sends a message to queue.
         Default time to live is 7 days, however this can be specified in seconds. Set to infinity with -1.
