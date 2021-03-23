@@ -117,7 +117,7 @@ class AuthenticateFunctions:
                     tag = container_permissions["tag"]
 
                     return ContainerSasPermissions(read=read, write=write, delete=delete, 
-                                               delete_previous_version=delete_previous_version, list=list_blob, tag=tag)
+                                                   delete_previous_version=delete_previous_version, list=list_blob, tag=tag)
             except KeyError:
 
                 raise AuthenticationError("If specifying container SAS permissions all permissions status must be provided")

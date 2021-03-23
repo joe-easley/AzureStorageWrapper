@@ -101,7 +101,7 @@ class QueueFunctions:
         try:
 
             queue_service_client = self._generate_queue_service_client()
-            queue_client = queue_service_client.create_queue(name=name, metadata=metadata, timeout=timeout)
+            queue_service_client.create_queue(name=name, metadata=metadata, timeout=timeout)
 
             return True
 
