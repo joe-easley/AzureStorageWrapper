@@ -11,7 +11,7 @@ Tests currently failing due to azure test account being temporarily unavailable.
 
 This repo includes a library ('storagewrapper') that wraps around azure storage sdks. In time it will contain all methods contained within the standard SDKs, as well as some bespoke functions, for example recursively deleting on a file share, which is currently unsupported directly by azure python SDK.
 
-Its intent is to simplify the SDK's further so that you only ever need to interact with one client per storage type. Currently this library supports operations with blob, file share and queue storeage.
+Its intent is to simplify the SDK's further so that you only ever need to interact with one client per storage type. Currently this library supports operations with blob and file share. Support for Queue storage is under active development.
 
 For further information on how to use this library, and see what functions are currently supported click [here](https://github.com/joe-easley/AzureStorageWrapper/blob/main/main/README.md)
 
