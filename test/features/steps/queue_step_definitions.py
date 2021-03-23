@@ -31,7 +31,7 @@ def create_queue(context, queue_name):
 
     assert creation_status
 
-@then("a {message} is sent to the {queue_name}")
+@then("a {message} is sent to {queue_name}")
 def send_message_to_queue(context, message, queue_name):
 
     message_status = context.queue_functions.send_message(content=message, queue_name=queue_name)
