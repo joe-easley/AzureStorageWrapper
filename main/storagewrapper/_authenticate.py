@@ -1,5 +1,6 @@
 from azure.storage.blob import ContainerSasPermissions
-from azure.storage.fileshare import AccountSasPermissions
+from azure.storage.fileshare import AccountSasPermissions as fs_acc_sas
+from azure.storage.queue import AccountSasPermissions as queue_acc_sas
 from azure.identity import ClientSecretCredential, UsernamePasswordCredential
 from azure.keyvault.secrets import SecretClient
 from datetime import timedelta
@@ -41,10 +42,12 @@ class AuthenticateFunctions:
 
             self.container_sas_permissions = self.__define_container_sas_permissions()
             self.fileshare_sas_permissions = self.__define_fileshare_sas_permissions()
+            self.queue_sas_permissions = self.__define_queue_sas_permissions()
         
         elif "sas_permissions" not in self.params:
             self.container_sas_permissions = self.__default_container_sas_permissions()
             self.fileshare_sas_permissions = self.__default_fileshare_sas_permissions()
+            self.queue_sas_permissions = self.__default_queue_sas_permissions()
         
         self.sas_duration = self.__define_sas_duration()
 
@@ -98,15 +101,22 @@ class AuthenticateFunctions:
             try:
 
                 container_permissions = permissions["container_permissions"]
+                
+                if not container_permissions:
+                    
+                    return ContainerSasPermissions(read=False, write=False, delete=False, 
+                                                   delete_previous_version=False, list=False, tag=False)
+                
+                else:
 
-                read = container_permissions["read"]
-                write = container_permissions["write"]
-                delete = container_permissions["delete"]
-                delete_previous_version = container_permissions["delete_previous_version"]
-                list_blob = container_permissions["list"]
-                tag = container_permissions["tag"]
+                    read = container_permissions["read"]
+                    write = container_permissions["write"]
+                    delete = container_permissions["delete"]
+                    delete_previous_version = container_permissions["delete_previous_version"]
+                    list_blob = container_permissions["list"]
+                    tag = container_permissions["tag"]
 
-                return ContainerSasPermissions(read=read, write=write, delete=delete, 
+                    return ContainerSasPermissions(read=read, write=write, delete=delete, 
                                                delete_previous_version=delete_previous_version, list=list_blob, tag=tag)
             except KeyError:
 
@@ -131,37 +141,94 @@ class AuthenticateFunctions:
 
                 fileshare_permissions = permissions["file_permissions"]
 
-                read = fileshare_permissions["read"]
-                write = fileshare_permissions["write"]
-                delete = fileshare_permissions["delete"]
-                delete_previous_version = fileshare_permissions["delete_previous_version"]
-                list_files = fileshare_permissions["list"]
-                add = fileshare_permissions["add"]
-                create = fileshare_permissions["create"]
-                update = fileshare_permissions["update"]
-                process = fileshare_permissions["process"]
-                tag = fileshare_permissions["tag"]
-                filter_by_tags = fileshare_permissions["filter_by_tags"]
+                if not fileshare_permissions:
 
-                return AccountSasPermissions(read=read, write=write, delete=delete, list=list_files, 
-                                             add=add, create=create, update=update, process=process, 
-                                             delete_previous_version=delete_previous_version, tag=tag, 
-                                             filter_by_tags=filter_by_tags)
+                    return fs_acc_sas(read=False, write=False, delete=False, list=False, 
+                                      add=False, create=False, update=False, process=False, 
+                                      delete_previous_version=False, tag=False, 
+                                      filter_by_tags=False)
+                
+                else:
+
+                    read = fileshare_permissions["read"]
+                    write = fileshare_permissions["write"]
+                    delete = fileshare_permissions["delete"]
+                    delete_previous_version = fileshare_permissions["delete_previous_version"]
+                    list_files = fileshare_permissions["list"]
+                    add = fileshare_permissions["add"]
+                    create = fileshare_permissions["create"]
+                    update = fileshare_permissions["update"]
+                    process = fileshare_permissions["process"]
+                    tag = fileshare_permissions["tag"]
+                    filter_by_tags = fileshare_permissions["filter_by_tags"]
+
+                    return fs_acc_sas(read=read, write=write, delete=delete, list=list_files, 
+                                      add=add, create=create, update=update, process=process, 
+                                      delete_previous_version=delete_previous_version, tag=tag, 
+                                      filter_by_tags=filter_by_tags)
             except KeyError:
 
                 raise AuthenticationError("If specifying container SAS permissions all permissions status must be provided")
         
         elif "file_permissions" not in permissions:
 
-            return AccountSasPermissions(read=True, write=True, delete=True, list=True, 
-                                         add=True, create=True, update=True, process=True, 
-                                         delete_previous_version=True, tag=True, 
-                                         filter_by_tags=True)
+            return fs_acc_sas(read=True, write=True, delete=True, list=True, 
+                              add=True, create=True, update=True, process=True, 
+                              delete_previous_version=True, tag=True, 
+                              filter_by_tags=True)
 
     def __default_fileshare_sas_permissions(self):
-        return AccountSasPermissions(read=True, write=True, delete=True, list=True, 
-                                     add=True, create=True, update=True, process=True, 
-                                     delete_previous_version=True, tag=True, filter_by_tags=True)
+        return fs_acc_sas(read=True, write=True, delete=True, list=True, 
+                          add=True, create=True, update=True, process=True, 
+                          delete_previous_version=True, tag=True, filter_by_tags=True)
+
+    def __define_queue_sas_permissions(self):
+        permissions = self.params["sas_permissions"]
+
+        if "queue_permissions" in permissions:
+            
+            try:
+
+                queue_permissions = permissions["queue_permissions"]
+                
+                if not queue_permissions:
+                    
+                    return queue_acc_sas(read=False, write=False, delete=False, list=False, add=False, create=False,
+                                         update=False, process=False, delete_previous_version=False, 
+                                         tag=False, filter_by_tags=False)
+                
+                else:
+
+                    read = queue_permissions["read"]
+                    write = queue_permissions["write"]
+                    delete = queue_permissions["delete"]
+                    list_queue = queue_permissions["list"]
+                    add = queue_permissions["add"]
+                    create = queue_permissions["create"]
+                    update = queue_permissions["update"]
+                    process = queue_permissions["process"]
+                    delete_previous_version = queue_permissions["delete_previous_version"]
+                    tag = queue_permissions["tag"]
+                    filter_by_tags = queue_permissions["filter_by_tags"]
+
+                    return queue_acc_sas(read=read, write=write, delete=delete, list=list_queue, add=add, create=create,
+                                         update=update, process=process, delete_previous_version=delete_previous_version, 
+                                         tag=tag, filter_by_tags=filter_by_tags)
+            
+            except KeyError:
+
+                raise AuthenticationError("If specifying queue SAS permissions all permissions status must be provided")
+        
+        elif "container_permission" not in permissions:
+
+            return queue_acc_sas(read=True, write=True, delete=True, list=True, add=True, create=True,
+                                 update=True, process=True, delete_previous_version=True, 
+                                 tag=True, filter_by_tags=True)
+
+    def __default_queue_sas_permissions(self):
+        return queue_acc_sas(read=True, write=True, delete=True, list=True, add=True, create=True,
+                             update=True, process=True, delete_previous_version=True, 
+                             tag=True, filter_by_tags=True)
 
     def __define_sas_duration(self):
         if "sas_duration" in self.params:

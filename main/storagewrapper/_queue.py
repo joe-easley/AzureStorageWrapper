@@ -21,19 +21,16 @@ class QueueFunctions:
 
     Optional params:
 
-    param storage_account: str
-    param queue_name: str
-    param queue_client: QueueClient obj
+    handle_exceptions (bool): If True will handle exceptions. Defaults to False
 
     If a queue client exists (eg after using create queue) then this can be client can be used rather than a fresh client being generated
     """
 
-    def __init__(self, token, storage_account_name, queue_name=None, queue_client=None, handle_exceptions=False):
-        self.token = token
-        self.handle_exceptions = handle_exceptions
-        self.queue_client = queue_client
+    def __init__(self, authenticator, storage_account_name, handle_exceptions=False):
+        self.authenticator = authenticator
+        self.token = self.authenticator.token
         self.storage_account_name = storage_account_name
-        self.queue_name = queue_name
+        self.handle_exceptions = handle_exceptions
 
     def __str__(self):
         return f"Functions for operating queue storage within storage account:'{self.storage_account_name}'"
@@ -87,6 +84,32 @@ class QueueFunctions:
         queue_client = queue_service_client.get_queue_client(queue_name)
 
         return queue_client
+
+    def create_queue(self, name, metadata, timeout=10):
+        """
+        Creates a new queue in storage acct. Timeout value auto-set to 10seconds.
+        Returns a queue client object for created queue
+
+        param name: name
+        param metadata: dict
+        param timeout: int
+
+        return QueueClient obj
+
+        """
+
+        try:
+
+            queue_service_client = self._generate_queue_service_client()
+            queue_client = queue_service_client.create_queue(name=name, metadata=metadata, timeout=timeout)
+
+            return True
+
+        except Exception as e:
+            
+            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
+
+            return status
 
     def clear_messages(self, queue_name, timeout=10):
         """
@@ -192,32 +215,6 @@ class QueueFunctions:
             updated_message = self.queue_client.update_message(message, pop_receipt=pop_receipt, content=content)
 
             return updated_message
-
-        except Exception as e:
-            
-            status = self.__handle_errors(sys._getframe().f_code.co_name, e)
-
-            return status
-
-    def create_queue(self, name, metadata, timeout=10):
-        """
-        Creates a new queue in storage acct. Timeout value auto-set to 10seconds.
-        Returns a queue client object for created queue
-
-        param name: name
-        param metadata: dict
-        param timeout: int
-
-        return QueueClient obj
-
-        """
-
-        try:
-
-            queue_service_client = self._generate_queue_service_client()
-            queue_client = queue_service_client.create_queue(name=name, metadata=metadata, timeout=timeout)
-
-            return queue_client
 
         except Exception as e:
             

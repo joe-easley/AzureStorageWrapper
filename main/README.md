@@ -16,6 +16,8 @@ To use the azure storage functions you must first authenticate.
 
 An instantiated AuthenticateFunctions class object will provide the authorisation necessary to run BlobFunctions and FileShareFunctions. When one of the methods belonging to BlobFunctions or FileShareFunctions is run, it will generate a SAS token to create, update or delete resources. If left unspecified, the SAS that is generated resorts to *most permissive*. This is order for this library to be as user friendly to use as possible, however it is *strongly* recommended that you specify what permissions the SAS will allow. For more information on [Blob](https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.containersaspermissions?view=azure-python) and [FileShare](https://docs.microsoft.com/en-us/python/api/azure-storage-file-share/azure.storage.fileshare.accountsaspermissions?view=azure-python) SAS permissions.
 
+By specifying a permission as False (as below) the SAS will default to generating no credentials for that storage type.
+
 The SAS duration will default to 1 hour unless otherwise specified, this can be overridden as below.
 
     sas_permissions = {
@@ -26,7 +28,8 @@ The SAS duration will default to 1 hour unless otherwise specified, this can be 
                                 "delete": True,
                                 "delete_previous_version": True,
                                 "list":True,
-                                "tag": True},
+                                "tag": True
+                            },
                         "file_permissions":
                             {
                                 "read": True,
@@ -40,7 +43,9 @@ The SAS duration will default to 1 hour unless otherwise specified, this can be 
                                 "process": True,
                                 "tag": True,
                                 "filter_by_tags": True}
-                             }
+                             },
+                        "queue_permissions": False
+                      }
     sas_duration = 1
 
 There are currently two ways of authorising access.
